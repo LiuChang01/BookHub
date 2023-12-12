@@ -4,7 +4,7 @@ package it.unipi.lsmsd;
  * Hello world!
  *
  */
-public class Main 
+public class Main
 {
     public static void main( String[] args )
     {
