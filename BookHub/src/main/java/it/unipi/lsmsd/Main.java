@@ -1,5 +1,4 @@
 package it.unipi.lsmsd;
-
 /**
  * Hello world!
  *
