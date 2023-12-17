@@ -1,21 +1,19 @@
 package it.unipi.lsmsd.Model;
 
-import org.neo4j.fabric.planning.Use;
+
+import java.util.List;
 
 public class User {
     private String username;
     private String password;
     private int type;
-    public User(){}
+    List<LastBookReviews>reviews;
 
-    public User(String username, String password, int type) {
+    public User(String username, String password, int type, List<LastBookReviews> reviews) {
         this.username = username;
         this.password = password;
         this.type = type;
-    }
-
-    public User(String username, String password) {
-        this(username,password,0);
+        this.reviews = reviews;
     }
 
     public String getUsername() {
@@ -42,12 +40,21 @@ public class User {
         this.type = type;
     }
 
+    public List<LastBookReviews> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<LastBookReviews> reviews) {
+        this.reviews = reviews;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", type=" + type +
+                ", reviews=" + reviews +
                 '}';
     }
 }
