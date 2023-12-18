@@ -1,5 +1,6 @@
 package it.unipi.lsmsd.Model;
 
+import java.util.Date;
 import java.util.List;
 
 public class Book {
@@ -8,15 +9,17 @@ public class Book {
     private String description;
     List<String>authors;
     List<String>categories;
-    List<LastUserRevies> reviews;
+    private Date publishedDate;
+    List<LastUserReviews> last_users_review;
 
-    public Book(String ISBN, String title, String description, List<String> authors, List<String> categories, List<LastUserRevies> reviews) {
+    public Book(String ISBN, String title, String description, List<String> authors, List<String> categories, Date publishedDate, List<LastUserReviews> reviews) {
         this.ISBN = ISBN;
         Title = title;
         this.description = description;
         this.authors = authors;
         this.categories = categories;
-        this.reviews = reviews;
+        this.publishedDate = publishedDate;
+        this.last_users_review = reviews;
     }
 
     public String getISBN() {
@@ -59,12 +62,20 @@ public class Book {
         this.categories = categories;
     }
 
-    public List<LastUserRevies> getReviews() {
-        return reviews;
+    public Date getPublishedDate() {
+        return publishedDate;
     }
 
-    public void setReviews(List<LastUserRevies> reviews) {
-        this.reviews = reviews;
+    public void setPublishedDate(Date publishedDate) {
+        this.publishedDate = publishedDate;
+    }
+
+    public List<LastUserReviews> getLast_users_review() {
+        return last_users_review;
+    }
+
+    public void setLast_users_review(List<LastUserReviews> reviews) {
+        this.last_users_review = reviews;
     }
 
     @Override
@@ -75,7 +86,8 @@ public class Book {
                 ", description='" + description + '\'' +
                 ", authors=" + authors +
                 ", categories=" + categories +
-                ", reviews=" + reviews +
+                ", publishedDate=" + publishedDate +
+                ", reviews=" + last_users_review +
                 '}';
     }
 }

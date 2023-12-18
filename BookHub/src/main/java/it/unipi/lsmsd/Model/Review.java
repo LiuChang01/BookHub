@@ -9,18 +9,16 @@ public class Review {
     private String profileName;
     private float score;
     private Date time;
-    private String summary;
     private String review;
     List<String> categories;
     List<String> authors;
 
-    public Review(String ISBN, String title, String profileName, float score, Date time, String summary, String review, List<String> categories, List<String> authors) {
+    public Review(String ISBN, String title, String profileName, float score, Date time,  String review, List<String> categories, List<String> authors) {
         this.ISBN = ISBN;
         this.title = title;
         this.profileName = profileName;
         this.score = score;
         this.time = time;
-        this.summary = summary;
         this.review = review;
         this.categories = categories;
         this.authors = authors;
@@ -66,13 +64,6 @@ public class Review {
         this.time = time;
     }
 
-    public String getSummary() {
-        return summary;
-    }
-
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
 
     public String getReview() {
         return review;
@@ -106,7 +97,6 @@ public class Review {
                 ", profileName='" + profileName + '\'' +
                 ", score=" + score +
                 ", time=" + time +
-                ", summary='" + summary + '\'' +
                 ", review='" + review + '\'' +
                 ", categories=" + categories +
                 ", authors=" + authors +

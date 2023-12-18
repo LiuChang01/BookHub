@@ -4,24 +4,24 @@ package it.unipi.lsmsd.Model;
 import java.util.List;
 
 public class User {
-    private String username;
+    private String profileName;
     private String password;
     private int type;
-    List<LastBookReviews>reviews;
+    List<LastBookReviews>last_reviews;
 
-    public User(String username, String password, int type, List<LastBookReviews> reviews) {
-        this.username = username;
+    public User(String profileName, String password, int type, List<LastBookReviews> last_reviews) {
+        this.profileName = profileName;
         this.password = password;
         this.type = type;
-        this.reviews = reviews;
+        this.last_reviews = last_reviews;
     }
 
-    public String getUsername() {
-        return username;
+    public String getprofileName() {
+        return profileName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setprofileName(String profileName) {
+        this.profileName = profileName;
     }
 
     public String getPassword() {
@@ -40,21 +40,21 @@ public class User {
         this.type = type;
     }
 
-    public List<LastBookReviews> getReviews() {
-        return reviews;
+    public List<LastBookReviews> getLast_reviews() {
+        return last_reviews;
     }
 
-    public void setReviews(List<LastBookReviews> reviews) {
-        this.reviews = reviews;
+    public void setLast_reviews(List<LastBookReviews> last_reviews) {
+        this.last_reviews = last_reviews;
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "username='" + username + '\'' +
+                "profileName='" + profileName + '\'' +
                 ", password='" + password + '\'' +
                 ", type=" + type +
-                ", reviews=" + reviews +
+                ", last_reviews=" + last_reviews +
                 '}';
     }
 }
