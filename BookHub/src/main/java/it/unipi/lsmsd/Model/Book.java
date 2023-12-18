@@ -74,8 +74,8 @@ public class Book {
         return last_users_review;
     }
 
-    public void setLast_users_review(List<LastUserReviews> reviews) {
-        this.last_users_review = reviews;
+    public void setLast_users_review(List<LastUserReviews> last_users_review) {
+        this.last_users_review = last_users_review;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class Book {
                 ", authors=" + authors +
                 ", categories=" + categories +
                 ", publishedDate=" + publishedDate +
-                ", reviews=" + last_users_review +
+                ", last_users_reviews=" + last_users_review +
                 '}';
     }
 }
