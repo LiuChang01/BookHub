@@ -7,10 +7,9 @@ import com.google.gson.reflect.TypeToken;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.*;
+import com.mongodb.client.result.UpdateResult;
+import com.mongodb.internal.bulk.UpdateRequest;
 import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.Review;
 import it.unipi.lsmsd.Model.User;
@@ -18,12 +17,10 @@ import org.bson.BsonDateTime;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import javax.print.Doc;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -38,6 +35,7 @@ public class MongoDBManager {
     private final MongoCollection<Document> userCollection;
     private final MongoCollection<Document> bookCollection;
     private final MongoCollection<Document> reviewCollection;
+    private static final String reviewDeleted="Review deleted by admin because it doesn't follow the politeness";
 
     public MongoDBManager(MongoClient client){
         this.db= client.getDatabase("bookHubMongo");
@@ -75,13 +73,29 @@ public class MongoDBManager {
         }
     }
     public boolean deleteUser(User user){
+        try{
+            if(checkExistence(user.getprofileName())==null){
+                System.out.println("user doesn't exist");
+                return false;
+            }
+            Bson find=eq("profileName",user.getprofileName());
+            userCollection.deleteOne(find);
+            Bson findB=eq("last_users_review.profileName",user.getprofileName());
+            Bson updateB= Updates.pull("last_users_review",eq("profileName",user.getprofileName()));
+            bookCollection.updateMany(findB,updateB);
+            reviewCollection.deleteMany(find);
+            return true;
+        }catch (Exception e){
+            System.out.println("problems with deleting the user");
+            e.printStackTrace();
+            return false;
+        }
         //dipende
-        return false;
     }
     public boolean updateUser(User user){
         try{
-            if (user.getPassword().isEmpty()) {
-                System.out.println("password empty");
+            if (user.getPassword().isEmpty()||checkExistence(user.getprofileName())==null) {
+                System.out.println("password empty or user doesn't exist");
                 return false;
             }
             Document document = new Document("password", user.getPassword());
@@ -97,21 +111,20 @@ public class MongoDBManager {
     public User getUserByProfileName(String profileName){
         return checkExistence(profileName);
     }
-    //da testare e find che use
+    //da testare
     public boolean addReview(Book book, Review review){
         try {
             SimpleDateFormat dateFormat= new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
             Document document_last_users_review=new Document("profileName",review.getProfileName()).append("time", dateFormat.format(review.getTime())).append("score",review.getScore()).append("review",review.getReview());
             Document document_last_review=new Document("ISBN",review.getISBN()).append("Title",review.getTitle()).append("score",review.getScore()).append("time", dateFormat.format(review.getTime())).append("review",review.getReview());
             Document document_review=new Document("ISBN",review.getISBN()).append("Title",review.getTitle()).append("profileName",review.getProfileName()).append("score",review.getScore()).append("time", dateFormat.format(review.getTime())).append("review",review.getReview()).append("categories",review.getCategories()).append("authors",review.getAuthors());
-            Bson find=and(eq("ISBN",book.getISBN()));
             reviewCollection.insertOne(document_review);
             Document filter_book=new Document("ISBN",book.getISBN());
-            Document update_last_users_review=new Document("$push",new Document("last_users_review",new Document("$each",document_last_users_review).append("$position",0))).append("$slice",-5);
+            Document update_last_users_review=new Document("$push",new Document("last_users_review",new Document("$each",document_last_users_review).append("$position",0).append("$slice",-5)));
             Document filter_user=new Document("profileName",review.getProfileName());
-            Document update_last_review=new Document("$push",new Document("last_reviews",new Document("$each",document_last_review).append("$position",0))).append("$slice",-5);
-            userCollection.updateOne(filter_user,update_last_review,new UpdateOptions().upsert(true));
-            bookCollection.updateOne(filter_book,update_last_users_review,new UpdateOptions().upsert(true));
+            Document update_last_review=new Document("$push",new Document("last_reviews",new Document("$each",document_last_review).append("$position",0).append("$slice",-5)));
+            userCollection.updateOne(filter_user,update_last_review,new UpdateOptions());
+            bookCollection.updateOne(filter_book,update_last_users_review,new UpdateOptions());
             return true;
         }catch (Exception e ){
             System.out.println("problems with insert of a comment");
@@ -119,9 +132,30 @@ public class MongoDBManager {
             return false;
         }
     }
-    //update reviews??
+    //update reviews non esiste
 
     //delete comments policy?
+    public void deleteReview(Book book,Review review){
+        Document findB=new Document("ISBN",book.getISBN()).append("last_users_review",new Document("$elemMatch",new Document("profileName",review.getProfileName()).append("review",review.getReview())));
+        Document findR=new Document("ISBN",book.getISBN()).append("profileName",review.getProfileName());
+        Document findU=new Document("profileName",review.getProfileName()).append("last_reviews",new Document("$elemMatch",new Document("ISBN",book.getISBN()).append("review",review.getReview())));
+        Document updateR=new Document("$set",new Document("review",reviewDeleted));
+        UpdateResult updateResult=reviewCollection.updateOne(findR,updateR);
+        if(updateResult.getModifiedCount()==0){
+            System.out.println("no updated in review because not found review");
+            return;
+        }
+        Document updateUReview=new Document("$set",new Document("last_reviews.$.review",reviewDeleted));
+        updateResult=userCollection.updateOne(findU,updateUReview);
+        if(updateResult.getModifiedCount()==0){
+            System.out.println("user not modified maybe because in user there was no review in his last 5");
+        }
+        Document updateBReview=new Document("$set",new Document("last_users_review.$.review",reviewDeleted));
+        updateResult=bookCollection.updateOne(findB,updateBReview);
+        if(updateResult.getModifiedCount()==0){
+            System.out.println("book has no that review maybe is not in the last 5 of that book");
+        }
+    }
 
 
     public Book getBookByISBN(String ISBN){
@@ -197,6 +231,24 @@ public class MongoDBManager {
     }
 
     //get bad users
+    public List<User>getBadUsers(int skip,int limit){
+        List<User> results=new ArrayList<>();
+        ArrayList<Document>pipeline=new ArrayList<>();
+        pipeline.add(new Document("$match",new Document("review",reviewDeleted)));
+        pipeline.add(new Document("$group",new Document("_id","profileName").append("count",new Document("$sum",1))));
+        pipeline.add(new Document("$sort",new Document("count",-1)));
+        pipeline.add(new Document("$project",new Document("profileName","$_id").append("count",1).append("_id",0)));
+        pipeline.add(new Document("$skip",skip));
+        pipeline.add(new Document("$limit",limit));
+        Iterable<Document>result=reviewCollection.aggregate(pipeline);
+        for(Document document:result){
+            User user=getUserByProfileName(document.getString("profileName"));
+            if(user!=null){
+                results.add(user);
+            }
+        }
+        return results;
+    }
     //get versatile users
     //all comments writed days ago
     //mot commented books
@@ -212,6 +264,7 @@ public class MongoDBManager {
         for (Document result : bookCollection.aggregate(pipeline)) {
             categories.add(result.getString("_id"));
         }
+        Collections.sort(categories);
         return categories;
     }
 }
