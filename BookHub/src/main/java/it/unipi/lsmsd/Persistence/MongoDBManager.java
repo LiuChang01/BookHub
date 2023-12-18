@@ -9,7 +9,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.internal.bulk.UpdateRequest;
 import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.Review;
 import it.unipi.lsmsd.Model.User;
@@ -17,7 +16,6 @@ import org.bson.BsonDateTime;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import javax.print.Doc;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -176,7 +174,6 @@ public class MongoDBManager {
         }
     }
     public List<Book> searchBooksByParameters(String title, List<String> authors, String startDate, String endDate, List<String> categories, int skip, int limit) {
-        List<Book>books=new ArrayList<>();
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         List<Bson>pipeline=new ArrayList<>();
         if(title!=null&&!title.isEmpty()){
