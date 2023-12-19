@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -23,9 +24,9 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.Accumulators.first;
+import static com.mongodb.client.model.Accumulators.push;
 import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.descending;
 
 public class MongoDBManager {
@@ -112,6 +113,11 @@ public class MongoDBManager {
     //da testare
     public boolean addReview(Book book, Review review){
         try {
+            //check se cera gi ail review
+
+
+
+            
             SimpleDateFormat dateFormat= new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
             Document document_last_users_review=new Document("profileName",review.getProfileName()).append("time", dateFormat.format(review.getTime())).append("score",review.getScore()).append("review",review.getReview());
             Document document_last_review=new Document("ISBN",review.getISBN()).append("Title",review.getTitle()).append("score",review.getScore()).append("time", dateFormat.format(review.getTime())).append("review",review.getReview());
@@ -247,10 +253,89 @@ public class MongoDBManager {
         return results;
     }
     //get versatile users
-    //all comments writed days ago
-    //mot commented books
-    //categories summary by #books
-    //browse top categories with top comments
+    public List<Book> getTopBooks(int numReview,List<String> categories,int limit,int skip,ArrayList<Double>scores){
+        List<Book> results=new ArrayList<>();
+        List<Document>pipeline=new ArrayList<>();
+        if(categories!=null&&categories.isEmpty()){
+            pipeline.add(new Document("$match",
+                    new Document("categories",
+                            new Document("$in",categories))));
+        }
+        pipeline.addAll(Arrays.asList(
+                new Document("$group",
+                        new Document("_id","$ISBN")
+                                .append("averageScore",
+                                        new Document("$avg","$score"))
+                                .append("totalReviews",
+                                        new Document("$sum",1))),
+                new Document("$match",
+                        new Document("totalReviews",
+                                new Document("$gte",numReview))),
+                new Document("$sort",
+                        new Document("averageScore",-1)),
+                new Document("$project",
+                        new Document("ISBN","$_id")
+                                .append("averageScore",1)
+                                .append("totalReviews",1)
+                                .append("_id",0)),
+                new Document("$skip",skip),
+                new Document("$limit",limit)
+        ));
+        AggregateIterable<Document> documentAggregateIterable  =reviewCollection.aggregate(pipeline);
+        for(Document document:documentAggregateIterable){
+            results.add(getBookByISBN(document.getString("ISBN")));
+            scores.add(document.getDouble("averageScore"));
+        }
+        return results;
+    }
+    public List<Book> getMostReviewedBook(int skip, int limit){
+        return null;
+    }
+    public List<String> getMostActiveUsers(String startDate,String endDate,int skip,int limit,ArrayList<Integer> counts){
+
+        List<Document> pipeline;
+
+        if (startDate != null && endDate != null && !startDate.isEmpty() && !endDate.isEmpty()) {
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date start = dateFormat.parse(startDate);
+                Date end = dateFormat.parse(endDate);
+                pipeline=Arrays.asList(
+                        new Document("$match",
+                                new Document("time",
+                                        new Document("$gte",start)
+                                                .append("$lte",end))),
+                        new Document("$group",
+                                new Document("_id","$profileName")
+                                        .append("count",
+                                                new Document("$sum",1))),
+                        new Document("$sort",
+                                new Document("count",-1)),
+                        new Document("$project",
+                                new Document("_id",0)
+                                        .append("profileName","$_id")
+                                        .append("reviewCount","$count")),
+                        new Document("$skip",skip),
+                        new Document("$limit",limit)
+                );
+            } catch (ParseException e) {
+                System.out.println("problems with parse the date in getMostActiveUsers");
+                e.printStackTrace();
+                return null;
+            }
+            AggregateIterable<Document> results=reviewCollection.aggregate(pipeline);
+            List<String> topReviewersName=new ArrayList<>();
+            for (Document document:results){
+                String profileName=document.getString("profileName");
+                topReviewersName.add(profileName);
+                counts.add(document.getInteger("reviewCount"));
+            }
+            return topReviewersName;
+        }else{
+            System.out.println("enter a good start and end date");
+            return null;
+        }
+    }
     public List<String> getCategories(){
         List<String> categories=new ArrayList<>();
         List<Bson> pipeline = Arrays.asList(

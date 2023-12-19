@@ -20,8 +20,13 @@ public class Main
     {
         System.out.println(Utils.readConfigurationParameters());
         MongoDBManager mongoDBManager=new MongoDBManager(MongoDBDriver.getInstance().openConnection());
-        System.out.println(mongoDBManager.deleteUser(new User("ascriboski","",0,new ArrayList<>())));
-        System.out.println(mongoDBManager.searchBooksByParameters("The Two Swords (Forgotten Realms Novel: Hunter's Blades Trilogy)", Arrays.asList("R.A. Salvatore"),"2000-01-01","2020-01-01",Arrays.asList("Fiction"),0,3));
+        ArrayList<Integer> couts=new ArrayList<>();
+        System.out.println(mongoDBManager.getMostActiveUsers("2005-01-01","2023-01-01",0,5,couts));
+        System.out.println(couts);
+        ArrayList<Double> scores=new ArrayList<>();
+        System.out.println(mongoDBManager.getTopBooks(100,Arrays.asList("Fiction"),5,0,scores));
+        System.out.println(scores);
+        System.out.println(mongoDBManager.searchBooksByParameters("Sword", Arrays.asList("R.A. Salvatore"),"2000-01-01","2020-01-01",Arrays.asList("Fiction"),0,3).size());
         System.out.println( "Hello World!" );
     }
 }
