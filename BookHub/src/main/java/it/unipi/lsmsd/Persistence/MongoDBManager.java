@@ -8,7 +8,10 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.Review;
@@ -24,9 +27,9 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.Accumulators.first;
-import static com.mongodb.client.model.Accumulators.push;
 import static com.mongodb.client.model.Aggregates.*;
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Sorts.descending;
 
 public class MongoDBManager {
@@ -93,6 +96,44 @@ public class MongoDBManager {
             return false;
         }
         //dipende
+    }
+    public boolean addBook(Book book){
+        Document result=bookCollection.find(eq("ISBN",book.getISBN())).first();
+        if(result!=null){
+            System.out.println("book already exists for the ISBN");
+            return false;
+        }
+        if(book.getISBN().isEmpty()
+                ||book.getISBN()==null
+                ||book.getAuthors().isEmpty()
+                ||book.getAuthors()==null
+                ||book.getDescription().isEmpty()
+                ||book.getDescription()==null
+                ||book.getCategories().isEmpty()
+                ||book.getCategories()==null
+                ||book.getLast_users_review()==null
+                ||book.getPublishedDate()==null
+                ||book.getTitle().isEmpty()
+                ||book.getTitle()==null){
+            System.out.println("Give all parameters to the book");
+            return false;
+        }
+        try{
+            SimpleDateFormat dateFormat= new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
+            Document document=new Document("ISBN",book.getISBN())
+                    .append("Title",book.getTitle())
+                    .append("description",book.getDescription())
+                    .append("authors",book.getAuthors())
+                    .append("categories",book.getCategories())
+                    .append("publishedDate",dateFormat.format(book.getPublishedDate()))
+                    .append("last_users_review",book.getLast_users_review());
+            bookCollection.insertOne(document);
+            return true;
+        }catch (Exception e){
+            System.out.println("problems with add book");
+            e.printStackTrace();
+            return false;
+        }
     }
     public boolean updateUser(User user){
         try{
@@ -340,8 +381,48 @@ public class MongoDBManager {
         }
         return results;
     }
-    public List<Book> getMostReviewedBook(int skip, int limit){
-        return null;
+    public List<User> getMostVersatileUsers(int skip, int limit){
+        List<Document> pipeline=Arrays.asList(
+                new Document("$group",
+                        new Document("_id","$profileName")
+                                .append("uniqueCategories",
+                                        new Document("$addToSet","$categories"))),
+                new Document("$project",
+                        new Document("profileName","$_id")
+                                .append("uniqueCategories","$uniqueCategories")
+                                .append("numUniqueCategories",
+                                        new Document("$size","$uniqueCategories"))),
+                new Document("$sort",
+                        new Document("numUniqueCategories",-1)),
+                new Document("$skip",skip),
+                new Document("$limit",limit)
+        );
+        AggregateIterable<Document> documentAggregateIterable=reviewCollection.aggregate(pipeline);
+        ArrayList<User> result=new ArrayList<>();
+        for(Document document:documentAggregateIterable){
+            result.add(getUserByProfileName(document.getString("profileName")));
+        }
+        return result;
+    }
+    public List<String> getTopCategoriesOfNumOfBookPublished(int skip,int limit){
+        List<Document> pipeline=Arrays.asList(
+                new Document("$unwind","$categories"),
+                new Document("$group",
+                        new Document("_id","$categories")
+                                .append("count",
+                                        new Document("$sum",1))),
+                new Document("$sort",
+                        new Document("count",-1)),
+                new Document("$skip",skip),
+                new Document("$limit",limit)
+        );
+        AggregateIterable<Document> documentAggregateIterable= bookCollection.aggregate(pipeline);
+        List<String> results=new ArrayList<>();
+        for(Document document:documentAggregateIterable){
+            results.add(document.getString("_id"));
+        }
+        return results;
+
     }
     public List<String> getMostActiveUsers(String startDate,String endDate,int skip,int limit,ArrayList<Integer> counts){
 

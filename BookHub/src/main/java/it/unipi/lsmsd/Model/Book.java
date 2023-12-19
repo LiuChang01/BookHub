@@ -14,7 +14,7 @@ public class Book {
 
     public Book(String ISBN, String title, String description, List<String> authors, List<String> categories, Date publishedDate, List<LastUserReviews> reviews) {
         this.ISBN = ISBN;
-        Title = title;
+        this.Title = title;
         this.description = description;
         this.authors = authors;
         this.categories = categories;
