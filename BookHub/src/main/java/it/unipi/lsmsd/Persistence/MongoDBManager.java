@@ -154,7 +154,6 @@ public class MongoDBManager {
     public User getUserByProfileName(String profileName){
         return checkExistence(profileName);
     }
-    //da testare
     public boolean addReview(Book book, Review review){
         try {
             Document result= reviewCollection.find(Filters.and(
@@ -206,7 +205,6 @@ public class MongoDBManager {
     }
     //update reviews non esiste
 
-    //delete comments policy?
     public void deleteReview(Book book,Review review){
         Document findB=new Document("ISBN",book.getISBN())
                 .append("last_users_review",
@@ -321,7 +319,6 @@ public class MongoDBManager {
         return results;
     }
 
-    //get bad users
     public List<User>getBadUsers(int skip,int limit){
         List<User> results=new ArrayList<>();
         ArrayList<Document>pipeline=new ArrayList<>();
@@ -345,7 +342,6 @@ public class MongoDBManager {
         }
         return results;
     }
-    //get versatile users
     public List<Book> getTopBooks(int numReview,List<String> categories,int limit,int skip,ArrayList<Double>scores){
         List<Book> results=new ArrayList<>();
         List<Document>pipeline=new ArrayList<>();
