@@ -29,6 +29,9 @@ public class Main
         System.out.println(mongoDBManager.searchBooksByParameters("Sword", Arrays.asList("R.A. Salvatore"),"2000-01-01","2020-01-01",Arrays.asList("Fiction"),0,3).size());
         System.out.println(mongoDBManager.getMostVersatileUsers(0,5));
         System.out.println(mongoDBManager.getTopCategoriesOfNumOfBookPublished(0,5));
+        ArrayList<Double> out=new ArrayList<>();
+        System.out.println(mongoDBManager.getMostRatedAuthors(0,5,20,out));
+        System.out.println(out);
         System.out.println( "Hello World!" );
     }
 }

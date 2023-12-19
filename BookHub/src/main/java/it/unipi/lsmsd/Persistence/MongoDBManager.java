@@ -20,6 +20,7 @@ import org.bson.BsonDateTime;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import javax.print.Doc;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -38,13 +39,24 @@ public class MongoDBManager {
     private final MongoCollection<Document> bookCollection;
     private final MongoCollection<Document> reviewCollection;
     private static final String reviewDeleted="Review deleted by admin because it doesn't follow the politeness";
-
+    /**
+     * Initializes a MongoDBManager with the provided MongoClient, connecting to the "bookHubMongo" database.
+     *
+     * @param client The MongoClient used to connect to the MongoDB server.
+     */
     public MongoDBManager(MongoClient client){
         this.db= client.getDatabase("bookHubMongo");
         userCollection=db.getCollection("users");
         bookCollection=db.getCollection("book");
         reviewCollection=db.getCollection("reviews");
     }
+    /**
+     * Attempts to log in a user by verifying the provided profile name and password.
+     *
+     * @param profileName The user's profile name.
+     * @param password The user's password.
+     * @return The User object representing the logged-in user, or null if login fails.
+     */
     public User login(String profileName, String password){
         Document result= userCollection.find(Filters.and(
                 eq("profileName",profileName),
@@ -52,12 +64,24 @@ public class MongoDBManager {
         Gson gson=new Gson();
         return gson.fromJson(gson.toJson(result), User.class);
     }
-    private User checkExistence(String profilename){
+    /**
+     * Checks the existence of a user with the given profile name in the user collection.
+     *
+     * @param profileName The profile name to check for existence.
+     * @return The User object representing the existing user, or null if the user does not exist.
+     */
+    private User checkExistence(String profileName){
         Document result= userCollection.find(Filters.and(
-                eq("profileName",profilename))).first();
+                eq("profileName",profileName))).first();
         Gson gson=new Gson();
         return gson.fromJson(gson.toJson(result), User.class);
     }
+    /**
+     * Adds a new user to the user collection in the MongoDB database.
+     *
+     * @param user The User object representing the user to be added.
+     * @return true if the user is successfully added, false otherwise.
+     */
     public boolean addUser(User user){
         try{
             if(user.getprofileName().isEmpty()||user.getPassword().isEmpty()){
@@ -77,6 +101,12 @@ public class MongoDBManager {
             return false;
         }
     }
+    /**
+     * Deletes a user from the user collection along with associated data in book and review collections.
+     *
+     * @param user The User object representing the user to be deleted.
+     * @return true if the user is successfully deleted, false otherwise.
+     */
     public boolean deleteUser(User user){
         try{
             if(checkExistence(user.getprofileName())==null){
@@ -97,6 +127,12 @@ public class MongoDBManager {
         }
         //dipende
     }
+    /**
+     * Adds a new book to the book collection in the MongoDB database.
+     *
+     * @param book The Book object representing the book to be added.
+     * @return true if the book is successfully added, false otherwise.
+     */
     public boolean addBook(Book book){
         Document result=bookCollection.find(eq("ISBN",book.getISBN())).first();
         if(result!=null){
@@ -135,6 +171,12 @@ public class MongoDBManager {
             return false;
         }
     }
+    /**
+     * Updates the password of an existing user in the user collection.
+     *
+     * @param user The User object representing the user with the updated password.
+     * @return true if the user's password is successfully updated, false otherwise.
+     */
     public boolean updateUser(User user){
         try{
             if (user.getPassword().isEmpty()||checkExistence(user.getprofileName())==null) {
@@ -151,9 +193,22 @@ public class MongoDBManager {
             return false;
         }
     }
+    /**
+     * Retrieves a user from the user collection based on the provided profile name.
+     *
+     * @param profileName The profile name of the user to retrieve.
+     * @return The User object representing the user with the specified profile name, or null if not found.
+     */
     public User getUserByProfileName(String profileName){
         return checkExistence(profileName);
     }
+    /**
+     * Adds a new review to the review collection and updates related fields in the user and book collections.
+     *
+     * @param book The Book object representing the book being reviewed.
+     * @param review The Review object representing the new review to be added.
+     * @return true if the review is successfully added, false otherwise.
+     */
     public boolean addReview(Book book, Review review){
         try {
             Document result= reviewCollection.find(Filters.and(
@@ -204,7 +259,12 @@ public class MongoDBManager {
         }
     }
     //update reviews non esiste
-
+    /**
+     * Deletes a review from the review collection and updates related fields in the user and book collections.
+     *
+     * @param book The Book object representing the book of the review to be deleted.
+     * @param review The Review object representing the review to be deleted.
+     */
     public void deleteReview(Book book,Review review){
         Document findB=new Document("ISBN",book.getISBN())
                 .append("last_users_review",
@@ -239,7 +299,12 @@ public class MongoDBManager {
         }
     }
 
-
+    /**
+     * Retrieves a book from the book collection based on the provided ISBN.
+     *
+     * @param ISBN The ISBN of the book to retrieve.
+     * @return The Book object representing the book with the specified ISBN, or null if not found.
+     */
     public Book getBookByISBN(String ISBN){
         try {
             if(ISBN.isEmpty()){
@@ -258,6 +323,18 @@ public class MongoDBManager {
             return null;
         }
     }
+    /**
+     * Searches for books in the book collection based on specified parameters.
+     *
+     * @param title The title of the book (partial match).
+     * @param authors The list of authors.
+     * @param startDate The start date for filtering books by published date.
+     * @param endDate The end date for filtering books by published date.
+     * @param categories The list of categories.
+     * @param skip The number of documents to skip in the result set.
+     * @param limit The maximum number of documents to return.
+     * @return A list of Book objects matching the specified parameters, or null if no matching books are found.
+     */
     public List<Book> searchBooksByParameters(String title, List<String> authors, String startDate, String endDate, List<String> categories, int skip, int limit) {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         List<Bson>pipeline=new ArrayList<>();
@@ -299,6 +376,14 @@ public class MongoDBManager {
         }
         return gson.fromJson(gson.toJson(result),new TypeToken<List<Book>>(){}.getType());
     }
+    /**
+     * Searches for users in the user collection based on a keyword in the profile name.
+     *
+     * @param keyword The keyword to search for in profile names (case-insensitive, partial match).
+     * @param admin True if searching for admin users, false for all users.
+     * @param next The page number for paginated results (starting from 0).
+     * @return A list of User objects matching the specified keyword and criteria, or an empty list if no matching users are found.
+     */
     public List<User> getUserByKeyword(String keyword,boolean admin,int next){
         List<User> results=new ArrayList<>();
         Gson gson= new GsonBuilder().serializeSpecialFloatingPointValues().create();
@@ -318,7 +403,13 @@ public class MongoDBManager {
         }
         return results;
     }
-
+    /**
+     * Retrieves a list of users who have posted reviews marked as "deleted."
+     *
+     * @param skip The number of documents to skip in the result set.
+     * @param limit The maximum number of documents to return.
+     * @return A list of User objects representing users with deleted reviews, or an empty list if no matching users are found.
+     */
     public List<User>getBadUsers(int skip,int limit){
         List<User> results=new ArrayList<>();
         ArrayList<Document>pipeline=new ArrayList<>();
@@ -342,6 +433,16 @@ public class MongoDBManager {
         }
         return results;
     }
+    /**
+     * Retrieves a list of top-rated books based on the specified criteria.
+     *
+     * @param numReview The minimum number of reviews a book must have to be considered.
+     * @param categories The list of categories to filter books.
+     * @param limit The maximum number of books to return.
+     * @param skip The number of books to skip in the result set.
+     * @param scores An ArrayList to store the average scores corresponding to each retrieved book.
+     * @return A list of Book objects representing top-rated books, or an empty list if no matching books are found.
+     */
     public List<Book> getTopBooks(int numReview,List<String> categories,int limit,int skip,ArrayList<Double>scores){
         List<Book> results=new ArrayList<>();
         List<Document>pipeline=new ArrayList<>();
@@ -377,6 +478,13 @@ public class MongoDBManager {
         }
         return results;
     }
+    /**
+     * Retrieves a list of the most versatile users based on the number of unique book categories they have reviewed.
+     *
+     * @param skip The number of users to skip in the result set.
+     * @param limit The maximum number of users to return.
+     * @return A list of User objects representing the most versatile users, or an empty list if no matching users are found.
+     */
     public List<User> getMostVersatileUsers(int skip, int limit){
         List<Document> pipeline=Arrays.asList(
                 new Document("$group",
@@ -400,6 +508,13 @@ public class MongoDBManager {
         }
         return result;
     }
+    /**
+     * Retrieves a list of the top book categories based on the number of books published in each category.
+     *
+     * @param skip The number of categories to skip in the result set.
+     * @param limit The maximum number of categories to return.
+     * @return A list of strings representing the top book categories, or an empty list if no matching categories are found.
+     */
     public List<String> getTopCategoriesOfNumOfBookPublished(int skip,int limit){
         List<Document> pipeline=Arrays.asList(
                 new Document("$unwind","$categories"),
@@ -420,6 +535,16 @@ public class MongoDBManager {
         return results;
 
     }
+    /**
+     * Retrieves a list of the most active users based on the number of reviews posted within a specified date range.
+     *
+     * @param startDate The start date of the review period.
+     * @param endDate The end date of the review period.
+     * @param skip The number of users to skip in the result set.
+     * @param limit The maximum number of users to return.
+     * @param counts An ArrayList to store the review counts corresponding to each retrieved user.
+     * @return A list of strings representing the most active users, or null if an error occurs.
+     */
     public List<String> getMostActiveUsers(String startDate,String endDate,int skip,int limit,ArrayList<Integer> counts){
 
         List<Document> pipeline;
@@ -465,6 +590,50 @@ public class MongoDBManager {
             return null;
         }
     }
+    /**
+     * Retrieves a list of the most rated authors based on the average score and minimum number of reviews for their books.
+     *
+     * @param skip The number of authors to skip in the result set.
+     * @param limit The maximum number of authors to return.
+     * @param numReviews The minimum number of reviews required for an author's book to be considered.
+     * @param score An ArrayList to store the average scores corresponding to each retrieved author.
+     * @return A list of strings representing the most rated authors, or an empty list if no matching authors are found.
+     */
+    public List<String> getMostRatedAuthors(int skip,int limit,int numReviews,ArrayList<Double>score){
+        List<String> results= new ArrayList<>();
+        List<Document> pipeline=Arrays.asList(
+                new Document("$unwind","$authors"),
+                new Document("$group",
+                        new Document("_id","$authors")
+                                .append("totalReviews",
+                                        new Document("$sum",1))
+                                .append("avgScore",
+                                        new Document("$avg","$score"))),
+                new Document("$match",
+                        new Document("totalReviews",
+                                new Document("$gte",numReviews))),
+                new Document("$sort",
+                        new Document("avgScore",-1)),
+                new Document("$project",
+                        new Document("author","$_id")
+                                .append("totalReviews",1)
+                                .append("avgScore",1)
+                                .append("_id",0)),
+                new Document("$skip",skip),
+                new Document("$limit",limit)
+        );
+        AggregateIterable<Document> documentAggregateIterable= reviewCollection.aggregate(pipeline);
+        for (Document document:documentAggregateIterable){
+            results.add(document.getString("author"));
+            score.add(document.getDouble("avgScore"));
+        }
+        return results;
+    }
+    /**
+     * Retrieves a sorted list of unique book categories from the collection.
+     *
+     * @return A list of strings representing unique book categories in sorted order, or an empty list if no categories are found.
+     */
     public List<String> getCategories(){
         List<String> categories=new ArrayList<>();
         List<Bson> pipeline = Arrays.asList(
