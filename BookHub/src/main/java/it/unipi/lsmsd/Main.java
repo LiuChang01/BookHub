@@ -23,13 +23,19 @@ public class Main
     {
         System.out.println(Utils.readConfigurationParameters());
         Neo4jDBManager neo4jDBManager= new Neo4jDBManager(Neo4jDBDriver.getInstance().openConnection());
+        User chang=new User("LiuChangUser"," ",0, new ArrayList<>());
         //System.out.println(neo4jDBManager.addUser(new User("LiuChangUser"," ",0, new ArrayList<>())));
         //System.out.println(neo4jDBManager.getNumFollowingUser(new User("D. Oppenheimer"," ",0,new ArrayList<>())));
-        //System.out.println(neo4jDBManager.userLikesAuthor(new User("LiuChangUser"," ",0, new ArrayList<>()),"Alessandro Manzoni"));
+        System.out.println(neo4jDBManager.userLikesAuthor(new User("LiuChangUser"," ",0, new ArrayList<>()),"Alessandro Manzoni"));
         //Review review=new Review("B000NRFXJI","The Betrothed (I Promessi Sposi)","LiuChangUser",2F, new Date(),"is a good book",new ArrayList<>(),new ArrayList<>());
         //System.out.println(neo4jDBManager.addBook(new Book("12345678","Bro sei un meme",null,Arrays.asList("Alessandro Manzoni","The best Bro"),Arrays.asList("Fiction","Broo"),new Date(), new ArrayList<>())));
         //System.out.println(neo4jDBManager.userPrefersGenre(new User("LiuChangUser"," ",0, new ArrayList<>()),"Horror films"));
         //System.out.println(neo4jDBManager.createFollowRelationship(new User("LiuChangUser"," ",0, new ArrayList<>()),new User("D. Oppenheimer"," ",0,new ArrayList<>())));
+        //System.out.println(neo4jDBManager.userDisLikesAuthor(chang,"Alessandro Manzoni"));
+        //System.out.println(neo4jDBManager.getUsersWithMostFollowers(10));
+        //System.out.println(neo4jDBManager.deleteFollowRelationship(chang,new User("D. Oppenheimer"," ",0,new ArrayList<>())));
+
+        System.out.println(neo4jDBManager.recommendationBasedOnAuthorsLiked(chang,2));
         /*
 
 
