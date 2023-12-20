@@ -53,7 +53,7 @@ public class MongoDBDriver {
              return client;
          }
          try{
-             String uri="mongodb://"+mongoFirstIp+":"+mongoFirstPort;
+             String uri="mongodb://"+mongoFirstIp+":"+mongoFirstPort;//+","+mongoFirstIp+":"+mongoSecondPort+","+mongoFirstIp+":"+mongoThirdPort;
              ConnectionString connectionString=new ConnectionString(uri);
              codecRegistry=fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),fromProviders(PojoCodecProvider.builder().automatic(true).build()));
              MongoClientSettings clientSettings=MongoClientSettings.builder().applyConnectionString(connectionString).readPreference(ReadPreference.primaryPreferred()).retryWrites(true).writeConcern(WriteConcern.W1).codecRegistry(codecRegistry).build();
