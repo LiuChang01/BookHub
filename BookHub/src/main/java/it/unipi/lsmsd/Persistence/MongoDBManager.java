@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -79,10 +76,11 @@ public class MongoDBManager {
     /**
      * Adds a new user to the user collection in the MongoDB database.
      *
-     * @param user The User object representing the user to be added.
+     * @param user    The User object representing the user to be added.
+     * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the user is successfully added, false otherwise.
      */
-    public boolean addUser(User user){
+    public boolean addUser(User user, ClientSession session){
         try{
             if(user.getprofileName().isEmpty()||user.getPassword().isEmpty()){
                 System.out.println("Enter a good profileName and Password");
@@ -93,7 +91,7 @@ public class MongoDBManager {
                 return false;
             }
             Document document= new Document("profileName", user.getprofileName()).append("password", user.getPassword()).append("type",user.getType()).append("last_reviews",user.getLast_reviews());
-            userCollection.insertOne(document);
+            userCollection.insertOne(session,document);
             return true;
         }catch (Exception e){
             System.out.println("problems in insert in db of new user register");
@@ -102,23 +100,25 @@ public class MongoDBManager {
         }
     }
     /**
-     * Deletes a user from the user collection along with associated data in book and review collections.
+     * Deletes a user and related data from the MongoDB database.
      *
-     * @param user The User object representing the user to be deleted.
+     * @param user    The User object representing the user to be deleted.
+     * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the user is successfully deleted, false otherwise.
      */
-    public boolean deleteUser(User user){
+
+    public boolean deleteUser(User user,ClientSession session){
         try{
             if(checkExistence(user.getprofileName())==null){
                 System.out.println("user doesn't exist");
                 return false;
             }
             Bson find=eq("profileName",user.getprofileName());
-            userCollection.deleteOne(find);
+            userCollection.deleteOne(session,find);
             Bson findB=eq("last_users_review.profileName",user.getprofileName());
             Bson updateB= Updates.pull("last_users_review",eq("profileName",user.getprofileName()));
-            bookCollection.updateMany(findB,updateB);
-            reviewCollection.deleteMany(find);
+            bookCollection.updateMany(session,findB,updateB);
+            reviewCollection.deleteMany(session,find);
             return true;
         }catch (Exception e){
             System.out.println("problems with deleting the user");
@@ -128,12 +128,13 @@ public class MongoDBManager {
         //dipende
     }
     /**
-     * Adds a new book to the book collection in the MongoDB database.
+     * Adds a new book to the MongoDB database.
      *
-     * @param book The Book object representing the book to be added.
+     * @param book    The Book object representing the book to be added.
+     * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the book is successfully added, false otherwise.
      */
-    public boolean addBook(Book book){
+    public boolean addBook(Book book,ClientSession session){
         Document result=bookCollection.find(eq("ISBN",book.getISBN())).first();
         if(result!=null){
             System.out.println("book already exists for the ISBN");
@@ -163,7 +164,7 @@ public class MongoDBManager {
                     .append("categories",book.getCategories())
                     .append("publishedDate",dateFormat.format(book.getPublishedDate()))
                     .append("last_users_review",book.getLast_users_review());
-            bookCollection.insertOne(document);
+            bookCollection.insertOne(session,document);
             return true;
         }catch (Exception e){
             System.out.println("problems with add book");
@@ -175,12 +176,13 @@ public class MongoDBManager {
      * Deletes a book from the MongoDB collection based on its ISBN.
      *
      * @param book The Book object representing the book to be deleted.
+     * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the book is successfully deleted, false otherwise.
      */
-    public boolean deleteBookByISBN(Book book){
+    public boolean deleteBookByISBN(Book book,ClientSession session){
         try{
             Document filter = new Document("ISBN", book.getISBN());
-            bookCollection.deleteOne(filter);
+            bookCollection.deleteOne(session,filter);
             return true;
         }catch (Exception e){
             System.out.println("problems with deleting the book");
@@ -224,9 +226,10 @@ public class MongoDBManager {
      *
      * @param book The Book object representing the book being reviewed.
      * @param review The Review object representing the new review to be added.
+     * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the review is successfully added, false otherwise.
      */
-    public boolean addReview(Book book, Review review){
+    public boolean addReview(Book book, Review review,ClientSession session){
         try {
             Document result= reviewCollection.find(Filters.and(
                     eq("profileName",review.getProfileName()),
@@ -253,7 +256,7 @@ public class MongoDBManager {
                     .append("review",review.getReview())
                     .append("categories",review.getCategories())
                     .append("authors",review.getAuthors());
-            reviewCollection.insertOne(document_review);
+            reviewCollection.insertOne(session,document_review);
             Document filter_book=new Document("ISBN",book.getISBN());
             Document update_last_users_review=new Document("$push",
                     new Document("last_users_review",
@@ -266,8 +269,8 @@ public class MongoDBManager {
                             new Document("$each",document_last_review)
                                     .append("$position",0)
                                     .append("$slice",-5)));
-            userCollection.updateOne(filter_user,update_last_review);
-            bookCollection.updateOne(filter_book,update_last_users_review);
+            userCollection.updateOne(session,filter_user,update_last_review);
+            bookCollection.updateOne(session,filter_book,update_last_users_review);
             return true;
         }catch (Exception e ){
             System.out.println("problems with insert of a comment");
