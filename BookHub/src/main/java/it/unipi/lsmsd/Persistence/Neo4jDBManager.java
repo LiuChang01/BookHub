@@ -446,15 +446,139 @@ public class Neo4jDBManager {
 
         return resultBooks;
     }
+    /**
+     * Recommends users who are followed by the most followers of the specified user.
+     *
+     * @param user  The user for whom the recommendation is generated.
+     * @param limit The maximum number of users to recommend.
+     * @return A list of recommended User objects.
+     */
+    public List<User> recommendUserWithMostFollowersOfFollowings(User user,int limit) {
+        List<User> resultUserNames = new ArrayList<>();
 
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                Result result = tx.run(
+                        "MATCH (:User {name: $userName})-[:FOLLOWS]->(:User)-[:FOLLOWS]->(u:User) " +
+                                "WITH u, COUNT(DISTINCT u2) AS numFollowers " +
+                                "ORDER BY numFollowers DESC " +
+                                "LIMIT $limit " +
+                                "RETURN u.name AS recommendedUserName",
+                        parameters("userName", user.getprofileName(),"limit",limit)
+                );
 
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    String recommendedUserName = record.get("recommendedUserName").asString();
+                    resultUserNames.add(new User(recommendedUserName," ",0,new ArrayList<>()));
+                }
 
+                return null;
+            });
+        }
 
+        return resultUserNames;
+    }
 
+    /**
+     * Gets the user's preferred genre from the Neo4j database.
+     *
+     * @param user The User object representing the user for whom to retrieve the preferred genre.
+     * @return The user's preferred genre or null if not found.
+     */
+    public String getUserPreferredGenre(User user) {
+        try (Session session = driver.session()) {
+            return session.readTransaction(tx -> {
+                Result result = tx.run(
+                        "MATCH (u:User {name: $userProfileName})-[:PREFERS]->(g:Genre) " +
+                                "RETURN g.name AS preferredGenre",
+                        parameters("userProfileName", user.getprofileName())
+                );
 
+                if (result.hasNext()) {
+                    Record record = result.next();
+                    return record.get("preferredGenre").asString();
+                } else {
+                    return null;
+                }
+            });
+        }
+    }
 
+    /**
+     * Recommends books based on the most commented books by friends within the user's preferred genre.
+     *
+     * @param user  The User object representing the user for whom the recommendation is generated.
+     * @param limit The maximum number of books to recommend.
+     * @return A list of ISBNs of recommended books.
+     */
+    public List<String> recommendBooksBasedOnFriendsCommentsAndPreferredGenre(User user, int limit) {
+        List<String> resultBooks = new ArrayList<>();
 
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                // Stage 1: Get the user's preferred genre
+                String preferredGenre = getUserPreferredGenre(user);
 
+                if (preferredGenre != null) {
+                    // Stage 2: Recommend books based on friends' comments and the user's preferred genre
+                    Result result = tx.run(
+                            "MATCH (u:User {name: $userName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book)-[:BELONGS_TO]->(g:Genre) " +
+                                    "WITH b, g, COUNT(r) AS numComments " +
+                                    "WHERE g.name = $preferredGenre " +
+                                    "WITH b,g,numComments "+
+                                    "ORDER BY numComments DESC " +
+                                    "LIMIT $limit " +
+                                    "RETURN b.ISBN AS ISBN, b.title AS title",
+                            parameters("userName", user.getprofileName(), "preferredGenre", preferredGenre, "limit", limit)
+                    );
 
+                    while (result.hasNext()) {
+                        Record record = result.next();
+                        String isbn = record.get("ISBN").asString();
+                        resultBooks.add(isbn);
+                    }
+                }
 
+                return null;
+            });
+        }
+
+        return resultBooks;
+    }
+    /**
+     * Recommends books based on the most commented books by friends.
+     *
+     * @param user  The User object representing the user for whom the recommendation is generated.
+     * @param limit The maximum number of books to recommend.
+     * @return A list of ISBNs of recommended books.
+     */
+    public List<String> recommendBooksBasedOnFriendsComments(User user, int limit) {
+        List<String> resultBooks = new ArrayList<>();
+
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                // Cypher query to match the user, user's followings, books, and comments
+                Result result = tx.run(
+                        "MATCH (u:User {name: $userProfileName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book) " +
+                                "WITH b, COUNT(r) AS numComments " +
+                                "ORDER BY numComments DESC " +
+                                "LIMIT $limit " +
+                                "RETURN b.ISBN AS ISBN, b.title AS title",
+                        parameters("userProfileName", user.getprofileName(), "limit", limit)
+                );
+
+                // Process the result and add books to the resultBooks list
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    String isbn = record.get("ISBN").asString();
+                    resultBooks.add(isbn);
+                }
+
+                return null;
+            });
+        }
+
+        return resultBooks;
+    }
 }

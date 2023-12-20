@@ -172,6 +172,23 @@ public class MongoDBManager {
         }
     }
     /**
+     * Deletes a book from the MongoDB collection based on its ISBN.
+     *
+     * @param book The Book object representing the book to be deleted.
+     * @return true if the book is successfully deleted, false otherwise.
+     */
+    public boolean deleteBookByISBN(Book book){
+        try{
+            Document filter = new Document("ISBN", book.getISBN());
+            bookCollection.deleteOne(filter);
+            return true;
+        }catch (Exception e){
+            System.out.println("problems with deleting the book");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    /**
      * Updates the password of an existing user in the user collection.
      *
      * @param user The User object representing the user with the updated password.
