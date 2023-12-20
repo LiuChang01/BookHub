@@ -81,6 +81,36 @@ public class Neo4jDBManager {
         return numFollowers;
     }
     /**
+     * Retrieves the users who follow the given user.
+     *
+     * @param user The User object for whom to retrieve the followers.
+     * @return A list of User objects representing the users who follow the given user.
+     */
+    public List<User> getFollowers(User user) {
+        List<User> followers = new ArrayList<>();
+
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                Result result = tx.run(
+                        "MATCH (u:User {name: $username})<-[r:FOLLOWS]-(f:User) " +
+                                "RETURN f.name AS userName",
+                        parameters("username", user.getprofileName())
+                );
+
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    String userName = record.get("userName").asString();
+                    followers.add(new User(userName, "", 0, new ArrayList<>()));
+                }
+
+                return null;
+            });
+        }
+
+        return followers;
+    }
+
+    /**
      * Retrieves the number of users a given user is following in Neo4j.
      *
      * @param user The User object representing the user for whom to get the number of following users.
@@ -96,6 +126,35 @@ public class Neo4jDBManager {
             });
         }
         return numFollowing;
+    }
+    /**
+     * Retrieves the users followed by the given user.
+     *
+     * @param user The User object for whom to retrieve the followed users.
+     * @return A list of User objects representing the users followed by the given user.
+     */
+    public List<User> getFollowingUsers(User user) {
+        List<User> followingUsers = new ArrayList<>();
+
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                Result result = tx.run(
+                        "MATCH (u:User {name: $username})-[r:FOLLOWS]->(f:User) " +
+                                "RETURN f.name AS userName",
+                        parameters("username", user.getprofileName())
+                );
+
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    String userName = record.get("userName").asString();
+                    followingUsers.add(new User(userName, "", 0, new ArrayList<>()));
+                }
+
+                return null;
+            });
+        }
+
+        return followingUsers;
     }
     /**
      * Creates a FOLLOWS relationship between two users in Neo4j.
