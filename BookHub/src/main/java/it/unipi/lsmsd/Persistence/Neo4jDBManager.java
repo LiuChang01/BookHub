@@ -1,7 +1,11 @@
 package it.unipi.lsmsd.Persistence;
+import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.Review;
 import it.unipi.lsmsd.Model.User;
 import org.neo4j.driver.*;
+
+import java.time.ZoneId;
+
 import static org.neo4j.driver.Values.parameters;
 public class Neo4jDBManager {
     Driver driver;
@@ -185,8 +189,62 @@ public class Neo4jDBManager {
             return false;
         }
     }
+    private boolean createBook(Book book) {
+        try (Session session = driver.session()) {
+            return session.writeTransaction(tx -> {
+                tx.run(
+                        "MERGE (b:Book {ISBN: $isbn}) SET b.title = $title",
+                        parameters("isbn", book.getISBN(), "title", book.getTitle())
+                );
+
+                return true;
+            });
+        } catch (Exception e) {
+            System.out.println("Problems with creating or updating the Book node in Neo4j");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean linkOrCreateCategories(Book book){
+        try (Session session = driver.session()) {
+            return session.writeTransaction(tx -> {
+                for (String genre:book.getCategories()){
+                    tx.run("MERGE (b:Book {ISBN: $isbn}) " +
+                            "MERGE (g:Genre {name: $newGenre}) " +
+                            "MERGE (b)-[:BELONGS_TO]->(g)", parameters("isbn", book.getISBN(), "newGenre",genre ));
+                }
+                return true;
+            });
+        } catch (Exception e) {
+            System.out.println("Problems with creating or updating the Book categories node in Neo4j");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    private boolean linkOrCreateAuthors(Book book){
+        try (Session session = driver.session()) {
+            return session.writeTransaction(tx -> {
+                for (String author:book.getAuthors()){
+                    tx.run("MERGE (b:Book {ISBN: $isbn}) " +
+                            "MERGE (a:Author {name: $author}) " +
+                            "MERGE (a)-[w:WROTE]->(b)"+
+                            "SET w.publicationDate = $publicationDate", parameters("isbn", book.getISBN(), "author",author,"publicationDate",Values.value(book.getPublishedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())));
+                }
+                return true;
+            });
+        } catch (Exception e) {
+            System.out.println("Problems with creating or updating the Book authors node in Neo4j");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean addBook(Book book){
+        return createBook(book)&&linkOrCreateCategories(book)&&linkOrCreateAuthors(book);
+    }
 
     
+
 
 
 
