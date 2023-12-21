@@ -1,6 +1,7 @@
 package it.unipi.lsmsd;
 
 import com.mongodb.client.ClientSession;
+import it.unipi.lsmsd.Controller.CLIController;
 import it.unipi.lsmsd.Controller.LoginController;
 import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.LastBookReviews;
@@ -42,13 +43,15 @@ public class Main
 
          */
 
-
+        /*
         User chang=new User("LiuChangUser"," ",0, new ArrayList<>());
         Review review=new Review("12345678","bro you are good","LiuChangUser",5f,new Date(),"is a really good book",Arrays.asList("Fiction"),Arrays.asList("Liu Chang") );
         MongoDBManager mongoDBManager = new MongoDBManager(MongoDBDriver.getInstance().openConnection());
         LoginController loginController= new LoginController();
         loginController.initalize();
         System.out.println(loginController.checkCredentials("LiuChangUser"," "));
+
+         */
 /*
 
         try(ClientSession session= MongoDBDriver.getInstance().openConnection().startSession()){
@@ -84,5 +87,6 @@ public class Main
 
 
         System.out.println( "Hello World!" );
+        CLIController.startApplication();
     }
 }
