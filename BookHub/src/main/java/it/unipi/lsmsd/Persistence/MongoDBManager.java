@@ -156,36 +156,17 @@ public class MongoDBManager {
             return false;
         }
         try{
-            SimpleDateFormat dateFormat= new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
             Document document=new Document("ISBN",book.getISBN())
                     .append("Title",book.getTitle())
                     .append("description",book.getDescription())
                     .append("authors",book.getAuthors())
                     .append("categories",book.getCategories())
-                    .append("publishedDate",dateFormat.format(book.getPublishedDate()))
+                    .append("publishedDate",new java.util.Date(book.getPublishedDate().getTime()))
                     .append("last_users_review",book.getLast_users_review());
             bookCollection.insertOne(session,document);
             return true;
         }catch (Exception e){
             System.out.println("problems with add book");
-            e.printStackTrace();
-            return false;
-        }
-    }
-    /**
-     * Deletes a book from the MongoDB collection based on its ISBN.
-     *
-     * @param book The Book object representing the book to be deleted.
-     * @param session The MongoDB ClientSession to be used for the transaction.
-     * @return true if the book is successfully deleted, false otherwise.
-     */
-    public boolean deleteBookByISBN(Book book,ClientSession session){
-        try{
-            Document filter = new Document("ISBN", book.getISBN());
-            bookCollection.deleteOne(session,filter);
-            return true;
-        }catch (Exception e){
-            System.out.println("problems with deleting the book");
             e.printStackTrace();
             return false;
         }
@@ -229,56 +210,66 @@ public class MongoDBManager {
      * @param session The MongoDB ClientSession to be used for the transaction.
      * @return true if the review is successfully added, false otherwise.
      */
-    public boolean addReview(Book book, Review review,ClientSession session){
+    public boolean addReview(Book book, Review review, ClientSession session) {
         try {
-            Document result= reviewCollection.find(Filters.and(
-                    eq("profileName",review.getProfileName()),
-                    eq("ISBN",review.getISBN()))).first();
-            if(result!=null){
+            Document result = reviewCollection.find(Filters.and(
+                    eq("profileName", review.getProfileName()),
+                    eq("ISBN", review.getISBN()))).first();
+
+            if (result != null) {
                 System.out.println("Review for that user already exists");
                 return false;
             }
-            SimpleDateFormat dateFormat= new SimpleDateFormat("yyy-MM-dd HH:mm:ss");
-            Document document_last_users_review=new Document("profileName",review.getProfileName())
-                    .append("time", dateFormat.format(review.getTime()))
-                    .append("score",review.getScore())
-                    .append("review",review.getReview());
-            Document document_last_review=new Document("ISBN",review.getISBN())
-                    .append("Title",review.getTitle())
-                    .append("score",review.getScore())
-                    .append("time", dateFormat.format(review.getTime()))
-                    .append("review",review.getReview());
-            Document document_review=new Document("ISBN",review.getISBN())
-                    .append("Title",review.getTitle())
-                    .append("profileName",review.getProfileName())
-                    .append("score",review.getScore())
-                    .append("time", dateFormat.format(review.getTime()))
-                    .append("review",review.getReview())
-                    .append("categories",review.getCategories())
-                    .append("authors",review.getAuthors());
-            reviewCollection.insertOne(session,document_review);
-            Document filter_book=new Document("ISBN",book.getISBN());
-            Document update_last_users_review=new Document("$push",
+
+            Date reviewDate = review.getTime();
+
+            Document document_last_users_review = new Document("profileName", review.getProfileName())
+                    .append("time", new java.util.Date(reviewDate.getTime())) // Convert to BSON date
+                    .append("score", review.getScore())
+                    .append("review", review.getReview());
+
+            Document document_last_review = new Document("ISBN", review.getISBN())
+                    .append("Title", review.getTitle())
+                    .append("score", review.getScore())
+                    .append("time", new java.util.Date(reviewDate.getTime())) // Convert to BSON date
+                    .append("review", review.getReview());
+
+            Document document_review = new Document("ISBN", review.getISBN())
+                    .append("Title", review.getTitle())
+                    .append("profileName", review.getProfileName())
+                    .append("score", review.getScore())
+                    .append("time", new java.util.Date(reviewDate.getTime())) // Convert to BSON date
+                    .append("review", review.getReview())
+                    .append("categories", review.getCategories())
+                    .append("authors", review.getAuthors());
+
+            reviewCollection.insertOne(session, document_review);
+
+            Document filter_book = new Document("ISBN", book.getISBN());
+
+            Document update_last_users_review = new Document("$push",
                     new Document("last_users_review",
-                            new Document("$each",document_last_users_review)
-                                    .append("$position",0)
-                                    .append("$slice",-5)));
-            Document filter_user=new Document("profileName",review.getProfileName());
-            Document update_last_review=new Document("$push",
+                            new Document("$each", Arrays.asList(document_last_users_review))
+                                    .append("$position", 0)
+                                    .append("$slice", 5)));
+
+            Document filter_user = new Document("profileName", review.getProfileName());
+            Document update_last_review = new Document("$push",
                     new Document("last_reviews",
-                            new Document("$each",document_last_review)
-                                    .append("$position",0)
-                                    .append("$slice",-5)));
-            userCollection.updateOne(session,filter_user,update_last_review);
-            bookCollection.updateOne(session,filter_book,update_last_users_review);
+                            new Document("$each", Arrays.asList(document_last_review))
+                                    .append("$position", 0)
+                                    .append("$slice", 5)));
+
+            userCollection.updateOne(session, filter_user, update_last_review);
+            bookCollection.updateOne(session, filter_book, update_last_users_review);
+
             return true;
-        }catch (Exception e ){
-            System.out.println("problems with insert of a comment");
+        } catch (Exception e) {
+            System.out.println("Problems with insert of a comment");
             e.printStackTrace();
             return false;
         }
     }
-    //update reviews non esiste
     /**
      * Deletes a review from the review collection and updates related fields in the user and book collections.
      *

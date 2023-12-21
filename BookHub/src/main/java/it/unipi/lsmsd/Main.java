@@ -1,6 +1,7 @@
 package it.unipi.lsmsd;
 
 import com.mongodb.client.ClientSession;
+import it.unipi.lsmsd.Controller.LoginController;
 import it.unipi.lsmsd.Model.Book;
 import it.unipi.lsmsd.Model.LastBookReviews;
 import it.unipi.lsmsd.Model.Review;
@@ -43,14 +44,31 @@ public class Main
 
 
         User chang=new User("LiuChangUser"," ",0, new ArrayList<>());
+        Review review=new Review("12345678","bro you are good","LiuChangUser",5f,new Date(),"is a really good book",Arrays.asList("Fiction"),Arrays.asList("Liu Chang") );
         MongoDBManager mongoDBManager = new MongoDBManager(MongoDBDriver.getInstance().openConnection());
+        LoginController loginController= new LoginController();
+        loginController.initalize();
+        System.out.println(loginController.checkCredentials("LiuChangUser"," "));
+/*
+
         try(ClientSession session= MongoDBDriver.getInstance().openConnection().startSession()){
             session.startTransaction();
-            mongoDBManager.addUser(chang,session);
-            session.abortTransaction();
+            Book sir=mongoDBManager.getBookByISBN("B000GRRX3Y");
+            //System.out.println(sir);
+            Review reviews=new Review(sir.getISBN(), sir.getTitle(),"LiuChangUser",5f,new Date(),"is a really good book",sir.getCategories(),sir.getAuthors() );
+            //Book brobook=new Book("12345678","bro you are good","story about a bro",Arrays.asList("Liu Chang"),Arrays.asList("Fiction"),new Date(),new ArrayList<>());
+            //mongoDBManager.addBook(new Book("12345678","bro you are good","story about a bro",Arrays.asList("Liu Chang"),Arrays.asList("Fiction"),new Date(),new ArrayList<>()),session);
+            mongoDBManager.addReview(sir,reviews,session);
+
+            //session.abortTransaction();
+            session.commitTransaction();
         }catch (Exception e){
             e.printStackTrace();
         }
+
+
+
+ */
         //ArrayList<Integer> couts=new ArrayList<>();
         //System.out.println(mongoDBManager.getMostActiveUsers("2005-01-01","2023-01-01",0,5,couts));
         //System.out.println(couts);
