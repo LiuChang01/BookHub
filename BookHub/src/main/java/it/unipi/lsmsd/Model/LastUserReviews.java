@@ -49,11 +49,11 @@ public class LastUserReviews {
 
     @Override
     public String toString() {
-        return "LastUserReviews{" +
-                "profileName='" + profileName + '\'' +
-                ", time=" + time +
-                ", score=" + score +
-                ", review='" + review + '\'' +
+        return "LastUserReviews{" +'\n' +
+                "profileName='" + profileName + '\n' +
+                ", time=" + time +'\n' +
+                ", score=" + score +'\n' +
+                ", review='" + review + '\n' +
                 '}';
     }
 }

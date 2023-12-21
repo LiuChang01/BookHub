@@ -80,14 +80,14 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Book{" +
-                "ISBN='" + ISBN + '\'' +
-                ", Title='" + Title + '\'' +
-                ", description='" + description + '\'' +
-                ", authors=" + authors +
-                ", categories=" + categories +
-                ", publishedDate=" + publishedDate +
-                ", last_users_reviews=" + last_users_review +
-                '}';
+        return " " +
+                "ISBN='" + ISBN + '\n' +
+                ", Title='" + Title + '\n' +
+                ", description='" + description + '\n' +
+                ", authors=" + authors +'\n' +
+                ", categories=" + categories +'\n' +
+                ", publishedDate=" + publishedDate +'\n' +
+                ", last_users_reviews=" + last_users_review +'\n' +
+                ' ';
     }
 }

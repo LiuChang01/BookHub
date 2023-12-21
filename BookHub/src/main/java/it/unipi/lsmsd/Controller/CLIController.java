@@ -41,7 +41,8 @@ public class CLIController {
         while (true){
             System.out.println("1-Login");
             System.out.println("2-Sign Up");
-            System.out.println("3-Exit");
+            System.out.println("3-Find Book");
+            System.out.println("4-Exit");
             System.out.print("Choice->");
             switch (Integer.parseInt(scanner.nextLine())){
                 case 1:{
@@ -66,7 +67,25 @@ public class CLIController {
                     }
                     break;
                 }
-                case 3:
+                case 3:{
+                    System.out.print("Enter book title to find:");
+                    String bookTitleToFind = scanner.nextLine();
+                    System.out.print("From date:");
+                    String startDate = scanner.nextLine();
+                    System.out.print("To Date:");
+                    String endDate = scanner.nextLine();
+                    System.out.print("List of Authors(Separated by ,):");
+                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    System.out.print("List of categories(Separated by ,):");
+                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
+                    for(Book book:books){
+                        System.out.println(book);
+                    }
+                    break;
+                }
+
+                case 4:
                     System.out.println("bye");
                     System.exit(0);
             }
