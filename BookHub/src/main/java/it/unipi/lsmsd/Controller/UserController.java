@@ -36,7 +36,7 @@ public class UserController {
             return;
         }
         for (LastBookReviews lastBookReviews1:lastBookReviews){
-            System.out.println("\t"+lastBookReviews1);
+            System.out.println("\t \t"+lastBookReviews1);
         }
     }
     public void showFollowings(User user){
@@ -107,8 +107,13 @@ public class UserController {
     public List<User> getUserByKeyword(String keyword,boolean admin,int next){
         return mongoDBManager.getUserByKeyword(keyword,admin,next);
     }
-    public User getUserByProfileName(String profileName){
-        return mongoDBManager.getUserByProfileName(profileName);
+    public void getUserByProfileName(String profileName){
+        User user=mongoDBManager.getUserByProfileName(profileName);
+        if(user==null){
+            System.out.println("user doesnt exist");
+            return;
+        }
+        showProfile(user);
     }
 
     public List<Book> searchBooksByParameters(String title, List<String> authors, String startDate, String endDate, List<String> categories, int skip, int limit) {
