@@ -93,7 +93,7 @@ public class Neo4jDBManager {
             session.readTransaction(tx -> {
                 Result result = tx.run(
                         "MATCH (u:User {name: $username})<-[r:FOLLOWS]-(f:User) " +
-                                "RETURN f.name AS userName",
+                                "RETURN DISTINCT f.name AS userName",
                         parameters("username", user.getprofileName())
                 );
 
@@ -140,7 +140,7 @@ public class Neo4jDBManager {
             session.readTransaction(tx -> {
                 Result result = tx.run(
                         "MATCH (u:User {name: $username})-[r:FOLLOWS]->(f:User) " +
-                                "RETURN f.name AS userName",
+                                "RETURN DISTINCT f.name AS userName",
                         parameters("username", user.getprofileName())
                 );
 

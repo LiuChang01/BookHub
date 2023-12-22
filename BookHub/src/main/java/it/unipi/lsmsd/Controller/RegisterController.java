@@ -12,11 +12,20 @@ import java.util.ArrayList;
 public class RegisterController {
     private MongoDBManager mongoDBManager;
     private Neo4jDBManager neo4jDBManager;
-
+    /**
+     * Initializes the MongoDB and Neo4j database managers.
+     */
     public void initialize(){
         mongoDBManager= new MongoDBManager(MongoDBDriver.getInstance().openConnection());
         neo4jDBManager= new Neo4jDBManager(Neo4jDBDriver.getInstance().openConnection());
     }
+    /**
+     * Registers a new user by adding them to both MongoDB and Neo4j databases.
+     *
+     * @param profileName The profile name of the new user.
+     * @param password    The password for the new user.
+     * @return True if the user is successfully registered in both databases, false otherwise.
+     */
     public boolean signUp(String profileName,String password){
         if(password.isEmpty()||profileName.isEmpty()){
             System.out.println("empty profileName or password");

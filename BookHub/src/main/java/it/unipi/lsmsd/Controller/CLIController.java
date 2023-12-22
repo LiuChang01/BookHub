@@ -14,12 +14,20 @@ public class CLIController {
     private static final UserController userController = new UserController();
     private static final BookController bookController = new BookController();
     private static final Scanner scanner=new Scanner(System.in);
+    /**
+     * Initializes the application by setting up controllers.
+     * Called at the start of the application.
+     */
     private static void init(){
         loginController.initalize();
         registerController.initialize();
         userController.initialize();
         bookController.initialize();
     }
+    /**
+     * Starts the main application loop.
+     * Handles menus based on the user's login status and type.
+     */
     public static void startApplication(){
         init();
         while (true){
@@ -39,6 +47,10 @@ public class CLIController {
             }
         }
     }
+    /**
+     * Displays the menu for an unregistered user.
+     * Provides options for login, sign up, finding books, and exiting the application.
+     */
     private static void menuUnreg(){
         while (true){
             System.out.println("1-Login");
@@ -97,8 +109,15 @@ public class CLIController {
             }
         }
     }
+    /**
+     * Displays the menu for a registered user.
+     * Provides various options such as searching for books, users, adding reviews,
+     * changing password, managing preferences, following/unfollowing authors and users,
+     * and getting book recommendations based on friends' activities.
+     */
     private static void menuReg(){
         while (true){
+            System.out.println("0-Show following and/or Followers");
             System.out.println("1-Search book");
             System.out.println("2-Search user");
             System.out.println("3-Show profile");
@@ -117,6 +136,10 @@ public class CLIController {
             System.out.println("16-LogOut");
             System.out.print("Choice->");
             switch (Integer.parseInt(scanner.nextLine())){
+                case 0:{
+                    userController.showFollowings(Session.getInstance().getLoggedUser());
+                    break;
+                }
                 case 1:{
                     System.out.print("Enter book title to find:");
                     String bookTitleToFind = scanner.nextLine();
@@ -143,7 +166,9 @@ public class CLIController {
                     String usernameToFind = scanner.nextLine();
                     List<User>users=userController.getUserByKeyword(usernameToFind,false,0);
                     for(User user:users){
-                       userController.showProfilewithNoPass(user);
+                       if(user.getType()==0){
+                           userController.showProfilewithNoPass(user);
+                       }
                     }
                     break;
                 }
@@ -307,7 +332,11 @@ public class CLIController {
 
         }
     }
-
+    /**
+     * Displays the menu for an administrator user.
+     * Provides various options such as showing profile, finding users, changing passwords,
+     * finding books, deleting reviews, adding books, banning users, and generating statistics.
+     */
     private static void menuAdmin(){
         while (true){
             System.out.println("1-Show profile");
