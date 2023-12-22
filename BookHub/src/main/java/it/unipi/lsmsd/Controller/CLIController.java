@@ -92,9 +92,21 @@ public class CLIController {
                     System.out.print("To Date:");
                     String endDate = scanner.nextLine();
                     System.out.print("List of Authors(Separated by ,):");
-                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> authors;
+                    String author=scanner.nextLine();
+                    if(author.isEmpty()){
+                        authors=null;
+                    }else {
+                        authors= Arrays.asList(author.split(","));
+                    }
                     System.out.print("List of categories(Separated by ,):");
-                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> categories;
+                    String category=scanner.nextLine();
+                    if(category.isEmpty()){
+                        categories=null;
+                    }else {
+                        categories= Arrays.asList(category.split(","));
+                    }
                     List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
                     if(books==null){
                         System.out.println("No book in the DB using these parameters");
@@ -450,6 +462,7 @@ public class CLIController {
                     break;
                 }
                 case 6: {
+                    System.out.println("All information on the book must be well formatted and is all required");
                     System.out.print("ISBN:");
                     String isbn = scanner.nextLine();
                     System.out.print("Title:");
@@ -512,8 +525,14 @@ public class CLIController {
                     System.out.println("Top 5 categories by num of book published");
                     System.out.println(userController.getTopCategoriesOfNumOfBookPublished(0, 5));
                     System.out.println("To get Top 5 books please enter a Min num of reviews and a list of categories separated by ,");
-                    System.out.print("Categories:");
-                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    System.out.print("Categories(Separated by ,):");
+                    List<String> categories;
+                    String category=scanner.nextLine();
+                    if(category.isEmpty()){
+                        categories=null;
+                    }else {
+                        categories= Arrays.asList(category.split(","));
+                    }
                     System.out.print("Min Num:");
                     ArrayList<Double> scores = new ArrayList<>();
                     System.out.println(userController.getTopBooks(Integer.parseInt(scanner.nextLine()), categories, 5, 0, scores));
