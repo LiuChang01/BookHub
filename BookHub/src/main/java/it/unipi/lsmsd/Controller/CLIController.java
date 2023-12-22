@@ -156,9 +156,21 @@ public class CLIController {
                     System.out.print("To Date:");
                     String endDate = scanner.nextLine();
                     System.out.print("List of Authors(Separated by ,):");
-                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> authors;
+                    String author=scanner.nextLine();
+                    if(author.isEmpty()){
+                        authors=null;
+                    }else {
+                        authors= Arrays.asList(author.split(","));
+                    }
                     System.out.print("List of categories(Separated by ,):");
-                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> categories;
+                    String category=scanner.nextLine();
+                    if(category.isEmpty()){
+                        categories=null;
+                    }else {
+                        categories= Arrays.asList(category.split(","));
+                    }
                     List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
                     if(books==null){
                         System.out.println("No book in the DB using these parameters");
@@ -391,9 +403,21 @@ public class CLIController {
                     System.out.print("To Date:");
                     String endDate = scanner.nextLine();
                     System.out.print("List of Authors(Separated by ,):");
-                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> authors;
+                    String author=scanner.nextLine();
+                    if(author.isEmpty()){
+                        authors=null;
+                    }else {
+                        authors= Arrays.asList(author.split(","));
+                    }
                     System.out.print("List of categories(Separated by ,):");
-                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    List<String> categories;
+                    String category=scanner.nextLine();
+                    if(category.isEmpty()){
+                        categories=null;
+                    }else {
+                        categories= Arrays.asList(category.split(","));
+                    }
                     List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
                     if(books==null){
                         System.out.println("No book in the DB using these parameters");

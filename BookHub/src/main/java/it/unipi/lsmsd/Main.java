@@ -84,8 +84,9 @@ public class Main
         //ArrayList<Double> out=new ArrayList<>();
         //System.out.println(mongoDBManager.getMostRatedAuthors(0,5,20,out));
         //System.out.println(out);
-       // MongoDBManager mongoDBManager = new MongoDBManager(MongoDBDriver.getInstance().openConnection());
-       // System.out.println(mongoDBManager.searchBooksByParameters("Sword", Arrays.asList("R.A. Salvatore"),"2000-01-01","2020-01-01",Arrays.asList("Fiction"),0,3).size());
+        //Scanner scanner=new Scanner(System.in);
+        //MongoDBManager mongoDBManager = new MongoDBManager(MongoDBDriver.getInstance().openConnection());
+        //System.out.println(mongoDBManager.searchBooksByParameters("Sword", Arrays.asList("R.A. Salvatore"),"2000-01-01","2020-01-01",Arrays.asList("Fiction"),0,3).size());
 
         System.out.println( "Hello World!" );
         CLIController.startApplication();
