@@ -1,10 +1,7 @@
 package it.unipi.lsmsd.Controller;
 
 import com.mongodb.client.ClientSession;
-import it.unipi.lsmsd.Model.Book;
-import it.unipi.lsmsd.Model.LastBookReviews;
-import it.unipi.lsmsd.Model.Session;
-import it.unipi.lsmsd.Model.User;
+import it.unipi.lsmsd.Model.*;
 import it.unipi.lsmsd.Persistence.MongoDBDriver;
 import it.unipi.lsmsd.Persistence.MongoDBManager;
 import it.unipi.lsmsd.Persistence.Neo4jDBDriver;
@@ -16,11 +13,11 @@ import java.util.List;
 public class UserController {
     private MongoDBManager mongoDBManager;
     private Neo4jDBManager neo4jDBManager;
-    private List<String>categories;
+    private List<String>categoriesList;
     public void initialize(){
         mongoDBManager= new MongoDBManager(MongoDBDriver.getInstance().openConnection());
         neo4jDBManager= new Neo4jDBManager(Neo4jDBDriver.getInstance().openConnection());
-        categories=mongoDBManager.getCategories();
+        categoriesList=mongoDBManager.getCategories();
     }
     public void showProfile(User user){
         System.out.println("profileName->"+user.getprofileName());
@@ -36,7 +33,23 @@ public class UserController {
             return;
         }
         for (LastBookReviews lastBookReviews1:lastBookReviews){
-            System.out.println("\t \t"+lastBookReviews1);
+            System.out.println(lastBookReviews1);
+        }
+    }
+    public void showProfilewithNoPass(User user){
+        System.out.println("profileName->"+user.getprofileName());
+        System.out.println("type->"+(user.getType()==1?"admin":"normal User"));
+        System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
+        System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
+        List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
+                .getLast_reviews());
+        System.out.println("last_reviews:");
+        if(lastBookReviews==null){
+            System.out.println("no last reviews");
+            return;
+        }
+        for (LastBookReviews lastBookReviews1:lastBookReviews){
+            System.out.println(lastBookReviews1);
         }
     }
     public void showFollowings(User user){
@@ -65,6 +78,10 @@ public class UserController {
         return neo4jDBManager.userDisLikesAuthor(Session.getInstance().getLoggedUser(), name);
     }
     public boolean setPreferredGenre(String genre){
+        if(!categoriesList.contains(genre)){
+            System.out.println("Choose a genre that exists");
+            System.out.println(categoriesList);
+        }
         return neo4jDBManager.userPrefersGenre(Session.getInstance().getLoggedUser(), genre);
     }
     public List<String> getMostRatedAuthors(int skip, int limit, int numReviews, ArrayList<Double> score){
@@ -84,7 +101,7 @@ public class UserController {
         return mongoDBManager.getMostVersatileUsers(skip,limit);
     }
     public List<Book> getTopBooks(int numReview, List<String> categories, int limit, int skip, ArrayList<Double>scores){
-        for (String cat:categories){
+        for (String cat:categoriesList){
             if(!categories.contains(cat)){
                 System.out.println("some categories doesnt exists");
                 return null;
@@ -107,21 +124,23 @@ public class UserController {
     public List<User> getUserByKeyword(String keyword,boolean admin,int next){
         return mongoDBManager.getUserByKeyword(keyword,admin,next);
     }
-    public void getUserByProfileName(String profileName){
+    public User getUserByProfileName(String profileName){
         User user=mongoDBManager.getUserByProfileName(profileName);
         if(user==null){
             System.out.println("user doesnt exist");
-            return;
+            return null;
         }
         showProfile(user);
+        return user;
     }
+
 
     public List<Book> searchBooksByParameters(String title, List<String> authors, String startDate, String endDate, List<String> categories, int skip, int limit) {
         if(skip<0||limit<=0){
             System.out.println("error number");
             return null;
         }
-        for (String cat:categories){
+        for (String cat:categoriesList){
             if(!categories.contains(cat)){
                 System.out.println("some categories doesnt exists");
                 return null;
@@ -208,15 +227,16 @@ public class UserController {
         }
         return neo4jDBManager.recommendBooksBasedOnFriendsComments(Session.getInstance().getLoggedUser(), limit);
     }
-
-
-
-
-
-
-
-
-
-
+    public Review getReviewByISBNAndProfileName(String ISBN,String profileName){
+        return mongoDBManager.getReviewByISBNAndProfileName(ISBN,profileName);
 
     }
+    public List<String> recommendPopularBooksByGenre(int limit,int numReviews) {
+        String genre=neo4jDBManager.getUserPreferredGenre(Session.getInstance().getLoggedUser());
+        if(genre==null||genre.isEmpty()){
+            return null;
+        }
+        return neo4jDBManager.recommendPopularBooksByGenre(genre,limit,numReviews );
+    }
+
+}

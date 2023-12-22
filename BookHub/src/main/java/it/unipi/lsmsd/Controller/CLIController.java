@@ -1,7 +1,9 @@
 package it.unipi.lsmsd.Controller;
 
 import it.unipi.lsmsd.Model.Book;
+import it.unipi.lsmsd.Model.Review;
 import it.unipi.lsmsd.Model.Session;
+import it.unipi.lsmsd.Model.User;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -79,6 +81,10 @@ public class CLIController {
                     System.out.print("List of categories(Separated by ,):");
                     List<String> categories = Arrays.asList(scanner.nextLine().split(","));
                     List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
+                    if(books==null){
+                        System.out.println("No book in the DB using these parameters");
+                        break;
+                    }
                     for(Book book:books){
                         System.out.println(book);
                     }
@@ -93,13 +99,208 @@ public class CLIController {
     }
     private static void menuReg(){
         while (true){
-            System.out.println("1-search book");
-            System.out.println("2-search user");
+            System.out.println("1-Search book");
+            System.out.println("2-Search user");
             System.out.println("3-Show profile");
+            System.out.println("4-Add review");
+            System.out.println("5-Change Password");
+            System.out.println("6-Add Your Preferred genre");
+            System.out.println("7-Follow an Author");
+            System.out.println("8-Follow a User");
+            System.out.println("9-Unfollow an Author");
+            System.out.println("10-Unfollow a User");
+            System.out.println("11-Recommendation of Books Based On Friend");
+            System.out.println("12-Recommendation of Books Based On Friend and Preferred Genre");
+            System.out.println("13-Recommendation of Books Based On The Preferred Genre");
+            System.out.println("14-Recommendation of Books Based On Best Authors");
+            System.out.println("15-Recommendation of Users");
+            System.out.println("16-LogOut");
             System.out.print("Choice->");
             switch (Integer.parseInt(scanner.nextLine())){
+                case 1:{
+                    System.out.print("Enter book title to find:");
+                    String bookTitleToFind = scanner.nextLine();
+                    System.out.print("From date:");
+                    String startDate = scanner.nextLine();
+                    System.out.print("To Date:");
+                    String endDate = scanner.nextLine();
+                    System.out.print("List of Authors(Separated by ,):");
+                    List<String> authors = Arrays.asList(scanner.nextLine().split(","));
+                    System.out.print("List of categories(Separated by ,):");
+                    List<String> categories = Arrays.asList(scanner.nextLine().split(","));
+                    List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
+                    if(books==null){
+                        System.out.println("No book in the DB using these parameters");
+                        break;
+                    }
+                    for(Book book:books){
+                        System.out.println(book);
+                    }
+                    break;
+                }
+                case 2: {
+                    System.out.print("Enter username keyword to find:");
+                    String usernameToFind = scanner.nextLine();
+                    List<User>users=userController.getUserByKeyword(usernameToFind,false,0);
+                    for(User user:users){
+                       userController.showProfilewithNoPass(user);
+                    }
+                    break;
+                }
                 case 3:{
                     userController.showProfile(Session.getInstance().getLoggedUser());
+                    break;
+                }
+                case 4:{
+                    System.out.println("To add a Review please enter before the ISBN then if the book is what you are looking for, then add a review on it");
+                    System.out.print("ISBN:");
+                    String isbn=scanner.nextLine();
+                    Book book=bookController.getBookByISBN(isbn);
+                    if(book==null){
+                        System.out.println("The book doesnt exist so maybe try to find the book with other parameters before then return here to add the review");
+                        break;
+                    }
+                    System.out.println(book);
+                    System.out.print("Is this the book you are looking for?(Y/n):");
+                    if(scanner.nextLine().equalsIgnoreCase("y")){
+                        System.out.print("Review:");
+                        String review=scanner.nextLine();
+                        System.out.println("Score(1,2,3,4,5):");
+                        Review review1=new Review(book.getISBN(),book.getTitle(),Session.getInstance().getLoggedUser().getprofileName(),Integer.parseInt(scanner.nextLine()),new Date(),review,book.getCategories(),book.getAuthors());
+                        bookController.addReview(book,review1);
+                        System.out.println("Review Added");
+                    }
+                    break;
+                }
+                case 5:{
+                    System.out.print("Enter new password: ");
+                    String newPassword = scanner.nextLine();
+                    boolean passwordChanged = userController.changePassword(Session.getInstance().getLoggedUser(), newPassword);
+                    if (passwordChanged) {
+                        System.out.println("Password changed successfully.");
+                    } else {
+                        System.out.println("Password change failed.");
+                    }
+                    break;
+                }
+                case 6:{
+                    System.out.print("Your Preferred Genre is:");
+                    if(userController.setPreferredGenre(scanner.nextLine())){
+                        System.out.println("Your preferred genre now set");
+                    }
+                    break;
+                }
+                case 7:{
+                    System.out.print("Name of the Author:");
+                    if(userController.followAuthor(scanner.nextLine())){
+                        System.out.println("Now you are following the author");
+                    }else {
+                        System.out.println("Author does not exist or the name you provided is malformed so maybe search for a book that he/she written and get the name then");
+                    }
+                    break;
+                }
+                case 8:{
+                    System.out.print("Name of the user:");
+                    String profileName=scanner.nextLine();
+                    User user= userController.getUserByProfileName(profileName);
+                    if(user==null){
+                        System.out.println("User doesn't exist please enter a valid name");
+                        break;
+                    }
+                    if(userController.followUser(user)){
+                        System.out.println("Now you are following the user");
+                    }
+                    break;
+                }
+                case 9:{
+                    System.out.print("Name of the Author:");
+                    if(userController.unfollowAuthor(scanner.nextLine())){
+                        System.out.println("Now you are not following the author anymore");
+                    }else {
+                        System.out.println("Author does not exist or the name you provided is malformed so maybe search for a book that he/she written and get the name then");
+                    }
+                    break;
+                }
+                case 10:{
+                    System.out.print("Name of the user:");
+                    String profileName=scanner.nextLine();
+                    User user= userController.getUserByProfileName(profileName);
+                    if(user==null){
+                        System.out.println("User doesn't exist please enter a valid name");
+                        break;
+                    }
+                    if(userController.unfollowUser(user)){
+                        System.out.println("Now you are not following the user anymore");
+                    }
+                    break;
+                }
+                case 11:{
+                    List<String> ISBNS=userController.recommendBooksBasedOnFriendsComments(5);
+                    if(ISBNS==null){
+                        System.out.println("No recommendation because your friend is not reviewing any books");
+                        break;
+                    }
+                    System.out.println("Top 5 books that your friends read too");
+                    for(String isbn:ISBNS){
+                        System.out.println(bookController.getBookByISBN(isbn));
+                    }
+                    break;
+                }
+                case 12:{
+                    List<String> ISBNS=userController.recommendBooksBasedOnFriendsCommentsAndPreferredGenre(5);
+                    if(ISBNS==null){
+                        System.out.println("No recommendation because your friend is not reviewing any books or you have a preferred genres that doesn't coincide with your friends");
+                        break;
+                    }
+                    System.out.println("Top 5 books that your friends read too and it is based on your preferred genre");
+                    for(String isbn:ISBNS){
+                        System.out.println(bookController.getBookByISBN(isbn));
+                    }
+                    break;
+                }
+                case 13:{
+                    System.out.print("Min Num of reviews:");
+                    List<String> ISBNS=userController.recommendPopularBooksByGenre(5,Integer.parseInt(scanner.nextLine()));
+                    if(ISBNS==null){
+                        System.out.println("No recommendation because there is not a book about your preferred genre or you have not a preferred genre");
+                        break;
+                    }
+                    System.out.println("Top 5 books that is based on your preferred genre");
+                    for(String isbn:ISBNS){
+                        System.out.println(bookController.getBookByISBN(isbn));
+                    }
+                    break;
+                }
+                case 14:{
+                    List<String> ISBNS=userController.recommendationBasedOnAuthorsLiked(5);
+                    if(ISBNS==null){
+                        System.out.println("No recommendation because your are not reviewing any books or you have a preferred Authors");
+                        break;
+                    }
+                    System.out.println("Top 5 books that is based on your preferred Authors");
+                    for(String isbn:ISBNS){
+                        System.out.println(bookController.getBookByISBN(isbn));
+                    }
+                    break;
+                }
+                case 15:{
+                    List<User>users=userController.recommendUserWithMostFollowersOfFollowings(5);
+                    if(users==null){
+                        System.out.println("You don't have any friends");
+                        break;
+                    }
+                    System.out.println("Top 5 friends that are friends of your friends ");
+                    for(User user:users){
+                        userController.showProfilewithNoPass(userController.getUserByProfileName(user.getprofileName()));
+                    }
+                    break;
+                }
+                case 16:{
+                    Session.resetInstance();
+                    return;
+                }
+                default:{
+                    System.out.println("Invalid choice. Please try again.");
                     break;
                 }
             }
@@ -126,9 +327,12 @@ public class CLIController {
                     break;
                 }
                 case 2: {
-                    System.out.print("Enter username to find:");
+                    System.out.print("Enter username keyword to find:");
                     String usernameToFind = scanner.nextLine();
-                    userController.getUserByProfileName(usernameToFind);
+                    List<User>users=userController.getUserByKeyword(usernameToFind,false,0);
+                    for(User user:users){
+                        System.out.println(user);
+                    }
                     break;
                 }
                 case 3: {
@@ -154,16 +358,36 @@ public class CLIController {
                     System.out.print("List of categories(Separated by ,):");
                     List<String> categories = Arrays.asList(scanner.nextLine().split(","));
                     List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
-                    System.out.println(books);
-                    //chiedi se ci vuole fare qualcosa
+                    if(books==null){
+                        System.out.println("No book in the DB using these parameters");
+                        break;
+                    }
+                    for(Book book:books){
+                        System.out.println(book);
+                    }
                     break;
                 }
-                case 5:
-                    System.out.println("Enter review ID to delete:");
-                    int reviewIdToDelete = Integer.parseInt(scanner.nextLine());
-                    // Implement delete review functionality using userController.deleteReview(reviewIdToDelete)
-                    //fatto dopo il cerca?
+                case 5: {
+                    System.out.println("To Delete a review First of all Enter a ISBN then enter the profileName of the User:");
+                    System.out.print("ISBN:");
+                    String isbn = scanner.nextLine();
+                    System.out.print("profileName:");
+                    String profileName = scanner.nextLine();
+                    Book book = bookController.getBookByISBN(isbn);
+                    User user = userController.getUserByProfileName(profileName);
+                    if (book != null && user != null) {
+                        Review review = userController.getReviewByISBNAndProfileName(book.getISBN(),user.getprofileName());
+                        System.out.println(review);
+                        System.out.print("Do you want to delete the review?(Y/n)");
+                        if (scanner.nextLine().equalsIgnoreCase("y")) {
+                            bookController.deleteReview(book, review);
+                            System.out.println("Review deleted");
+                        }
+                    }else {
+                        System.out.println("book doesnt exists or user doesnt exists");
+                    }
                     break;
+                }
                 case 6: {
                     System.out.print("ISBN:");
                     String isbn = scanner.nextLine();
@@ -189,11 +413,19 @@ public class CLIController {
                     userController.addBook(book);
                     break;
                 }
-                case 7:
-                    System.out.println("Enter username to ban:");
-                    String usernameToBan = scanner.nextLine();
-                    // va forse messa con quello del cerca utenti
+                case 7: {
+                    System.out.print("Enter username find:");
+                    String usernameToFind = scanner.nextLine();
+                    User user = userController.getUserByProfileName(usernameToFind);
+                    if (user == null) {
+                        break;
+                    }
+                    System.out.print("Do you want to ban Him/Her?(Y/n)");
+                    if (scanner.nextLine().equalsIgnoreCase("y")) {
+                        userController.deleteUser(user);
+                    }
                     break;
+                }
                 case 8: {
                     System.out.println("Top 5 versatile Users");
                     System.out.println(userController.getMostVersatileUsers(0, 5));
@@ -227,13 +459,15 @@ public class CLIController {
                     System.out.println(scores);
                     break;
                 }
-                case 10:
+                case 10: {
                     // Logout the user
                     Session.resetInstance();
                     return;
-                default:
+                }
+                default: {
                     System.out.println("Invalid choice. Please try again.");
                     break;
+                }
             }
         }
     }

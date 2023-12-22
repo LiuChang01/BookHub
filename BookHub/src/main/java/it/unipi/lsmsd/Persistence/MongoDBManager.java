@@ -17,7 +17,6 @@ import org.bson.BsonDateTime;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import javax.print.Doc;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -281,14 +280,14 @@ public class MongoDBManager {
                 .append("last_users_review",
                         new Document("$elemMatch",
                                 new Document("profileName",review.getProfileName())
-                                        .append("review",review.getReview())));
+                                        ));
         Document findR=new Document("ISBN",book.getISBN())
                 .append("profileName",review.getProfileName());
         Document findU=new Document("profileName",review.getProfileName())
                 .append("last_reviews",
                         new Document("$elemMatch",
                                 new Document("ISBN",book.getISBN())
-                                        .append("review",review.getReview())));
+                                        ));
         Document updateR=new Document("$set",
                 new Document("review",reviewDeleted));
         UpdateResult updateResult=reviewCollection.updateOne(findR,updateR);
@@ -330,6 +329,31 @@ public class MongoDBManager {
             return b;
         }catch (JsonSyntaxException e){
             System.out.println("problems with conversion in the getBookByISBN");
+            e.printStackTrace();
+            return null;
+        }
+    }
+    /**
+     * Retrieves a review from the review collection based on the provided ISBN and profile name.
+     *
+     * @param ISBN        The ISBN of the book associated with the review.
+     * @param profileName The profile name of the person who wrote the review.
+     * @return The Review object representing the review with the specified ISBN and profile name,
+     *         or null if not found or if ISBN or profileName is empty.
+     */
+    public Review getReviewByISBNAndProfileName(String ISBN,String profileName){
+        try {
+            if(ISBN.isEmpty()||profileName.isEmpty()){
+                System.out.println("empty ISBN or profileName");
+                return null;
+            }
+            Gson gson=new GsonBuilder().setDateFormat("yyyy-MM-dd hh:mm:ss").create();
+            Document document=new Document("ISBN",ISBN)
+                    .append("profileName",profileName);
+            Document result=reviewCollection.find(document).first();
+            return gson.fromJson(gson.toJson(result), Review.class);
+        }catch (JsonSyntaxException e){
+            System.out.println("problem with parse json");
             e.printStackTrace();
             return null;
         }

@@ -42,5 +42,9 @@ public class BookController {
     public void deleteReview(Book book,Review review){
         mongoDBManager.deleteReview(book,review);
     }
+    public Book getBookByISBN(String ISBN){
+        return mongoDBManager.getBookByISBN(ISBN);
+    }
 
-}
+
+    }

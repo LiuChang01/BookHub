@@ -518,7 +518,7 @@ public class Neo4jDBManager {
         try (Session session = driver.session()) {
             session.readTransaction(tx -> {
                 Result result = tx.run(
-                        "MATCH (:User {name: $userName})-[:FOLLOWS]->(:User)-[:FOLLOWS]->(u:User) " +
+                        "MATCH (:User {name: $userName})-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(u2:User) " +
                                 "WITH u, COUNT(DISTINCT u2) AS numFollowers " +
                                 "ORDER BY numFollowers DESC " +
                                 "LIMIT $limit " +
@@ -640,4 +640,42 @@ public class Neo4jDBManager {
 
         return resultBooks;
     }
+    /**
+     * Recommends popular books based on the preferred genre and a specified minimum number of reviews.
+     *
+     * @param preferredGenre The preferred genre for book recommendations.
+     * @param limit          The maximum number of recommended books to return.
+     * @param numReviews     The minimum number of reviews a book should have to be considered popular.
+     * @return A list of ISBNs representing popular books in the preferred genre, or an empty list if none are found.
+     */
+    public List<String> recommendPopularBooksByGenre(String preferredGenre, int limit, int numReviews) {
+        List<String> resultBooks = new ArrayList<>();
+
+        try (Session session = driver.session()) {
+            session.readTransaction(tx -> {
+                // Recommend books based on the preferred genre and most reviewed by others
+                Result result = tx.run(
+                        "MATCH (u:User)-[:REVIEWS]->(b:Book)-[:BELONGS_TO]->(g:Genre) " +
+                                "WITH b, g, COUNT(u) AS numReviews " +
+                                "WHERE g.name = $preferredGenre AND numReviews > $numReviewsThreshold " +
+                                "RETURN b.ISBN AS ISBN, b.title AS title, numReviews " +
+                                "ORDER BY numReviews DESC " +
+                                "LIMIT $limit",
+                        parameters("preferredGenre", preferredGenre, "numReviewsThreshold", numReviews, "limit", limit)
+                );
+
+                // Iterate over the result and add ISBNs to the resultBooks list
+                while (result.hasNext()) {
+                    Record record = result.next();
+                    String isbn = record.get("ISBN").asString();
+                    resultBooks.add(isbn);
+                }
+
+                return null;
+            });
+        }
+
+        return resultBooks;
+    }
+
 }
