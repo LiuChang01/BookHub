@@ -30,28 +30,31 @@ public class CLIController {
      */
     public static void startApplication(){
         init();
-        while (true){
-            if(Session.getInstance().getLoggedUser()==null){
-                menuUnreg();
+        boolean finish=false;
+        do {
+            if (Session.getInstance().getLoggedUser() == null) {
+                finish=menuUnreg();
                 continue;
             }
-            switch (Session.getInstance().getLoggedUser().getType()){
-                case 0:{
+            switch (Session.getInstance().getLoggedUser().getType()) {
+                case 0: {
                     menuReg();
                     break;
                 }
-                case 1:{
+                case 1: {
                     menuAdmin();
                     break;
                 }
             }
-        }
+        } while (!finish);
     }
     /**
-     * Displays the menu for an unregistered user.
-     * Provides options for login, sign up, finding books, and exiting the application.
+     * Displays a menu for unregistered users, providing options such as login, sign up,
+     * book search, and exit. Executes the selected option until the user chooses to exit.
+     *
+     * @return A boolean indicating whether the user chose to exit (true) or not (false).
      */
-    private static void menuUnreg(){
+    private static boolean menuUnreg(){
         while (true){
             System.out.println("1-Login");
             System.out.println("2-Sign Up");
@@ -65,7 +68,7 @@ public class CLIController {
                     System.out.print("password->");
                     String pass=scanner.nextLine();
                     if(loginController.checkCredentials(name,pass)){
-                        return;
+                        return false;
                     }
                     break;
                 }
@@ -103,9 +106,14 @@ public class CLIController {
                     break;
                 }
 
-                case 4:
+                case 4: {
                     System.out.println("bye");
-                    System.exit(0);
+                    return true;
+                }
+                default:{
+                    System.out.println("Invalid choice. Please try again.");
+                    break;
+                }
             }
         }
     }
