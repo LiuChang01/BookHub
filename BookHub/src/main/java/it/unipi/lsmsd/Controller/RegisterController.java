@@ -42,13 +42,16 @@ public class RegisterController {
             if(mongoDBManager.addUser(adder,session)){
                 if(neo4jDBManager.addUser(adder)){
                     session.commitTransaction();
+                    session.close();
                     return true;
                 }else{
                     session.abortTransaction();
+                    session.close();
                     return false;
                 }
             }else{
                 session.abortTransaction();
+                session.close();
                 return false;
             }
         }catch (Exception e){

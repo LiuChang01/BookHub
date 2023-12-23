@@ -519,10 +519,10 @@ public class Neo4jDBManager {
             session.readTransaction(tx -> {
                 Result result = tx.run(
                         "MATCH (:User {name: $userName})-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(u2:User) " +
-                                "WITH u, COUNT(DISTINCT u2) AS numFollowers " +
+                                "WITH u2, COUNT(DISTINCT u) AS numFollowers " +
                                 "ORDER BY numFollowers DESC " +
                                 "LIMIT $limit " +
-                                "RETURN u.name AS recommendedUserName",
+                                "RETURN DISTINCT u2.name AS recommendedUserName",
                         parameters("userName", user.getprofileName(),"limit",limit)
                 );
 

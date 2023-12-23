@@ -22,6 +22,10 @@ public class UserController {
         neo4jDBManager= new Neo4jDBManager(Neo4jDBDriver.getInstance().openConnection());
         categoriesList=mongoDBManager.getCategories();
     }
+    public void close(){
+        Neo4jDBDriver.getInstance().closeConnection();
+        MongoDBDriver.getInstance().closeConnection();
+    }
 
     /**
      * Displays the user profile information including profileName, password, type, follows, following, and last reviews.
@@ -32,18 +36,21 @@ public class UserController {
         System.out.println("profileName->"+user.getprofileName());
         System.out.println("password->"+user.getPassword());
         System.out.println("type->"+(user.getType()==1?"admin":"normal User"));
-        System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
-        System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
-        List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
-                .getLast_reviews());
-        System.out.println("last_reviews:");
-        if(lastBookReviews==null){
-            System.out.println("no last reviews");
-            return;
+        if(user.getType()==0){
+            System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
+            System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
+            List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
+                    .getLast_reviews());
+            System.out.println("last_reviews:");
+            if(lastBookReviews==null){
+                System.out.println("no last reviews");
+                return;
+            }
+            for (LastBookReviews lastBookReviews1:lastBookReviews){
+                System.out.println(lastBookReviews1);
+            }
         }
-        for (LastBookReviews lastBookReviews1:lastBookReviews){
-            System.out.println(lastBookReviews1);
-        }
+
     }
     /**
      * Displays user profile information without showing the password.
@@ -53,18 +60,21 @@ public class UserController {
     public void showProfilewithNoPass(User user){
         System.out.println("profileName->"+user.getprofileName());
         System.out.println("type->"+(user.getType()==1?"admin":"normal User"));
-        System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
-        System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
-        List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
-                .getLast_reviews());
-        System.out.println("last_reviews:");
-        if(lastBookReviews==null){
-            System.out.println("no last reviews");
-            return;
+        if(user.getType()==0){
+            System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
+            System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
+            List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
+                    .getLast_reviews());
+            System.out.println("last_reviews:");
+            if(lastBookReviews==null){
+                System.out.println("no last reviews");
+                return;
+            }
+            for (LastBookReviews lastBookReviews1:lastBookReviews){
+                System.out.println(lastBookReviews1);
+            }
         }
-        for (LastBookReviews lastBookReviews1:lastBookReviews){
-            System.out.println(lastBookReviews1);
-        }
+
     }
     /**
      * Displays the list of users that the current user is following and those who are following the current user.
@@ -291,10 +301,12 @@ public class UserController {
             System.out.println("error number");
             return null;
         }
-        for (String cat:categoriesList){
-            if(!categories.contains(cat)){
-                System.out.println("some categories doesnt exists");
-                return null;
+        if(categories!=null&&!categories.isEmpty()){
+            for (String cat:categoriesList){
+                if(!categories.contains(cat)){
+                    System.out.println("some categories doesnt exists");
+                    return null;
+                }
             }
         }
         return mongoDBManager.searchBooksByParameters(title,authors,startDate,endDate,categories,skip,limit);
@@ -313,13 +325,16 @@ public class UserController {
             if(mongoDBManager.addBook(book,session)){
                 if(neo4jDBManager.addBook(book)){
                     session.commitTransaction();
+                    session.close();
                     return true;
                 }else {
                     session.abortTransaction();
+                    session.close();
                     return false;
                 }
             }else {
                 session.abortTransaction();
+                session.close();
                 return false;
             }
         }catch (Exception e){
@@ -341,13 +356,16 @@ public class UserController {
             if(mongoDBManager.deleteUser(user,session)){
                 if(neo4jDBManager.deleteUser(user)){
                     session.commitTransaction();
+                    session.close();
                     return true;
                 }else {
                     session.abortTransaction();
+                    session.close();
                     return false;
                 }
             }else {
                 session.abortTransaction();
+                session.close();
                 return false;
             }
         }catch (Exception e){

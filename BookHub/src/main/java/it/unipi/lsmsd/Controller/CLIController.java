@@ -19,10 +19,21 @@ public class CLIController {
      * Called at the start of the application.
      */
     private static void init(){
+
         loginController.initalize();
         registerController.initialize();
         userController.initialize();
         bookController.initialize();
+        System.out.println("********************************************");
+        System.out.println("*            Welcome to BOOK-HUB           *");
+        System.out.println("*   Your Ultimate Destination for Reading  *");
+        System.out.println("*                                          *");
+        System.out.println("* Discover, Explore, and Immerse Yourself  *");
+        System.out.println("*    in the Enchanting World of Books      *");
+        System.out.println("*                                          *");
+        System.out.println("********************************************");
+        System.out.println("We're here to guide you on your literary journey!");
+        System.out.println();
     }
     /**
      * Starts the main application loop.
@@ -120,6 +131,7 @@ public class CLIController {
 
                 case 4: {
                     System.out.println("bye");
+                    userController.close();
                     return true;
                 }
                 default:{
@@ -222,7 +234,7 @@ public class CLIController {
                     if(scanner.nextLine().equalsIgnoreCase("y")){
                         System.out.print("Review:");
                         String review=scanner.nextLine();
-                        System.out.println("Score(1,2,3,4,5):");
+                        System.out.print("Score(1,2,3,4,5):");
                         Review review1=new Review(book.getISBN(),book.getTitle(),Session.getInstance().getLoggedUser().getprofileName(),Integer.parseInt(scanner.nextLine()),new Date(),review,book.getCategories(),book.getAuthors());
                         bookController.addReview(book,review1);
                         System.out.println("Review Added");
@@ -348,7 +360,7 @@ public class CLIController {
                     }
                     System.out.println("Top 5 friends that are friends of your friends ");
                     for(User user:users){
-                        userController.showProfilewithNoPass(userController.getUserByProfileName(user.getprofileName()));
+                        userController.getUserByProfileName(user.getprofileName());
                     }
                     break;
                 }
