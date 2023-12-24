@@ -92,14 +92,14 @@ public class Review {
     @Override
     public String toString() {
         return "Review{" +
-                "ISBN='" + ISBN + '\n' +
-                ", title='" + title + '\n' +
-                ", profileName='" + profileName + '\n' +
-                ", score=" + score +'\n' +
-                ", time=" + time +'\n' +
-                ", review='" + review + '\n' +
-                ", categories=" + categories +'\n' +
-                ", authors=" + authors +'\n' +
+                "ISBN='" + ISBN + '\'' +
+                ", title='" + title + '\'' +
+                ", profileName='" + profileName + '\'' +
+                ", score=" + score +
+                ", time=" + time +
+                ", review='" + review + '\'' +
+                ", categories=" + categories +
+                ", authors=" + authors +
                 '}';
     }
 }

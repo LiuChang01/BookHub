@@ -59,11 +59,12 @@ public class LastBookReviews {
 
     @Override
     public String toString() {
-        return
-                "ISBN='" + ISBN + '\n' +
-                "title='" + Title + '\n' +
-                "score=" + score +'\n'+
-                "time=" + time +'\n'+
-                "review='" + review + '\n' ;
+        return "LastBookReviews{" +
+                "ISBN='" + ISBN + '\'' +
+                ", Title='" + Title + '\'' +
+                ", score=" + score +
+                ", time=" + time +
+                ", review='" + review + '\'' +
+                '}';
     }
 }

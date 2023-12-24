@@ -1,9 +1,6 @@
 package it.unipi.lsmsd.Controller;
 
-import it.unipi.lsmsd.Model.Book;
-import it.unipi.lsmsd.Model.Review;
-import it.unipi.lsmsd.Model.Session;
-import it.unipi.lsmsd.Model.User;
+import it.unipi.lsmsd.Model.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -32,7 +29,9 @@ public class CLIController {
         System.out.println("*    in the Enchanting World of Books      *");
         System.out.println("*                                          *");
         System.out.println("********************************************");
-        System.out.println("We're here to guide you on your literary journey!");
+        System.out.println("Hello, Reader! Ready to dive into the world of books?");
+        System.out.println("Use the menu options to explore different features.");
+        System.out.println("Enter the corresponding number to make your choice.");
         System.out.println();
     }
     /**
@@ -69,14 +68,16 @@ public class CLIController {
         while (true){
             System.out.println("1-Login");
             System.out.println("2-Sign Up");
-            System.out.println("3-Find Book");
+            System.out.println("3-Search for Books");
             System.out.println("4-Exit");
-            System.out.print("Choice->");
+            System.out.println("------------");
+            System.out.print("Please enter your choice: ");
+
             switch (Integer.parseInt(scanner.nextLine())){
                 case 1:{
-                    System.out.print("username->");
+                    System.out.print("username:");
                     String name=scanner.nextLine();
-                    System.out.print("password->");
+                    System.out.print("password:");
                     String pass=scanner.nextLine();
                     if(loginController.checkCredentials(name,pass)){
                         return false;
@@ -84,9 +85,9 @@ public class CLIController {
                     break;
                 }
                 case 2:{
-                    System.out.print("username->");
+                    System.out.print("username:");
                     String name=scanner.nextLine();
-                    System.out.print("password->");
+                    System.out.print("password:");
                     String pass=scanner.nextLine();
                     if(registerController.signUp(name,pass)){
                         System.out.println("Now you are registered");
@@ -118,19 +119,51 @@ public class CLIController {
                     }else {
                         categories= Arrays.asList(category.split(","));
                     }
-                    List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
-                    if(books==null){
+                    List<Book> books = userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5);
+                    if (books == null || books.isEmpty()) {
                         System.out.println("No book in the DB using these parameters");
                         break;
                     }
-                    for(Book book:books){
-                        System.out.println(book);
+                    for (Book book : books) {
+                        System.out.println("=== Book ===");
+                        System.out.println("ISBN: " + book.getISBN());
+                        System.out.println("Title: " + book.getTitle());
+                        System.out.println("Description: " + book.getDescription());
+                        System.out.println("Authors: " + book.getAuthors());
+                        System.out.println("Categories: " + book.getCategories());
+                        System.out.println("Published Date: " + book.getPublishedDate());
+
+                        List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                        System.out.println("=== Last User Reviews ===");
+
+                        if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                            System.out.println("No last user reviews available.");
+                        } else {
+                            for (LastUserReviews userReview : lastUserReviews) {
+                                System.out.println("---- User Review ----");
+                                System.out.println("Profile Name: " + userReview.getProfileName());
+                                System.out.println("Time: " + userReview.getTime());
+                                System.out.println("Score: " + userReview.getScore());
+                                System.out.println("Review: " + userReview.getReview());
+                                System.out.println("----------------------");
+                            }
+                        }
+
+                        System.out.println("====================");
                     }
                     break;
                 }
 
                 case 4: {
-                    System.out.println("bye");
+                    System.out.println("********************************************");
+                    System.out.println("*          Thank you for visiting          *");
+                    System.out.println("*               BOOK-HUB                   *");
+                    System.out.println("*     We hope you had an amazing time      *");
+                    System.out.println("*      exploring the world of books!       *");
+                    System.out.println("*                                          *");
+                    System.out.println("*         Keep reading and come back       *");
+                    System.out.println("*              soon. Goodbye!              *");
+                    System.out.println("********************************************");
                     userController.close();
                     return true;
                 }
@@ -156,17 +189,20 @@ public class CLIController {
             System.out.println("4-Add review");
             System.out.println("5-Change Password");
             System.out.println("6-Add Your Preferred genre");
-            System.out.println("7-Follow an Author");
-            System.out.println("8-Follow a User");
-            System.out.println("9-Unfollow an Author");
-            System.out.println("10-Unfollow a User");
-            System.out.println("11-Recommendation of Books Based On Friend");
-            System.out.println("12-Recommendation of Books Based On Friend and Preferred Genre");
-            System.out.println("13-Recommendation of Books Based On The Preferred Genre");
-            System.out.println("14-Recommendation of Books Based On Best Authors");
-            System.out.println("15-Recommendation of Users");
-            System.out.println("16-LogOut");
-            System.out.print("Choice->");
+            System.out.println("7-Follow/Unfollow");
+            System.out.println("8-Follow an Author");
+            System.out.println("9-Follow a User");
+            System.out.println("10-Unfollow an Author");
+            System.out.println("11-Unfollow a User");
+            System.out.println("12-Recommendation of Books Based On Friend");
+            System.out.println("13-Recommendation of Books Based On Friend and Preferred Genre");
+            System.out.println("14-Recommendation of Books Based On The Preferred Genre");
+            System.out.println("15-Recommendation of Books Based On Best Authors");
+            System.out.println("16-Recommendation of Users");
+            System.out.println("17-LogOut");
+            System.out.println("------------");
+            System.out.print("Enter your choice: ");
+
             switch (Integer.parseInt(scanner.nextLine())){
                 case 0:{
                     userController.showFollowings(Session.getInstance().getLoggedUser());
@@ -195,13 +231,37 @@ public class CLIController {
                     }else {
                         categories= Arrays.asList(category.split(","));
                     }
-                    List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
-                    if(books==null){
+                    List<Book> books = userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5);
+                    if (books == null || books.isEmpty()) {
                         System.out.println("No book in the DB using these parameters");
                         break;
                     }
-                    for(Book book:books){
-                        System.out.println(book);
+                    for (Book book : books) {
+                        System.out.println("=== Book ===");
+                        System.out.println("ISBN: " + book.getISBN());
+                        System.out.println("Title: " + book.getTitle());
+                        System.out.println("Description: " + book.getDescription());
+                        System.out.println("Authors: " + book.getAuthors());
+                        System.out.println("Categories: " + book.getCategories());
+                        System.out.println("Published Date: " + book.getPublishedDate());
+
+                        List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                        System.out.println("=== Last User Reviews ===");
+
+                        if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                            System.out.println("No last user reviews available.");
+                        } else {
+                            for (LastUserReviews userReview : lastUserReviews) {
+                                System.out.println("---- User Review ----");
+                                System.out.println("Profile Name: " + userReview.getProfileName());
+                                System.out.println("Time: " + userReview.getTime());
+                                System.out.println("Score: " + userReview.getScore());
+                                System.out.println("Review: " + userReview.getReview());
+                                System.out.println("----------------------");
+                            }
+                        }
+
+                        System.out.println("====================");
                     }
                     break;
                 }
@@ -229,7 +289,31 @@ public class CLIController {
                         System.out.println("The book doesnt exist so maybe try to find the book with other parameters before then return here to add the review");
                         break;
                     }
-                    System.out.println(book);
+                    System.out.println("=== Book ===");
+                    System.out.println("ISBN: " + book.getISBN());
+                    System.out.println("Title: " + book.getTitle());
+                    System.out.println("Description: " + book.getDescription());
+                    System.out.println("Authors: " + book.getAuthors());
+                    System.out.println("Categories: " + book.getCategories());
+                    System.out.println("Published Date: " + book.getPublishedDate());
+
+                    List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                    System.out.println("=== Last User Reviews ===");
+
+                    if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                        System.out.println("No last user reviews available.");
+                    } else {
+                        for (LastUserReviews userReview : lastUserReviews) {
+                            System.out.println("---- User Review ----");
+                            System.out.println("Profile Name: " + userReview.getProfileName());
+                            System.out.println("Time: " + userReview.getTime());
+                            System.out.println("Score: " + userReview.getScore());
+                            System.out.println("Review: " + userReview.getReview());
+                            System.out.println("----------------------");
+                        }
+                    }
+
+                    System.out.println("====================");
                     System.out.print("Is this the book you are looking for?(Y/n):");
                     if(scanner.nextLine().equalsIgnoreCase("y")){
                         System.out.print("Review:");
@@ -276,6 +360,7 @@ public class CLIController {
                         System.out.println("User doesn't exist please enter a valid name");
                         break;
                     }
+                    userController.showProfilewithNoPass(user);
                     if(userController.followUser(user)){
                         System.out.println("Now you are following the user");
                     }
@@ -298,6 +383,7 @@ public class CLIController {
                         System.out.println("User doesn't exist please enter a valid name");
                         break;
                     }
+                    userController.showProfilewithNoPass(user);
                     if(userController.unfollowUser(user)){
                         System.out.println("Now you are not following the user anymore");
                     }
@@ -310,9 +396,39 @@ public class CLIController {
                         break;
                     }
                     System.out.println("Top 5 books that your friends read too");
-                    for(String isbn:ISBNS){
-                        System.out.println(bookController.getBookByISBN(isbn));
+                    for (String isbn : ISBNS) {
+                        Book book = bookController.getBookByISBN(isbn);
+                        if (book != null) {
+                            System.out.println("=== Book ===");
+                            System.out.println("ISBN: " + book.getISBN());
+                            System.out.println("Title: " + book.getTitle());
+                            System.out.println("Description: " + book.getDescription());
+                            System.out.println("Authors: " + book.getAuthors());
+                            System.out.println("Categories: " + book.getCategories());
+                            System.out.println("Published Date: " + book.getPublishedDate());
+
+                            List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                            System.out.println("=== Last User Reviews ===");
+
+                            if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                                System.out.println("No last user reviews available.");
+                            } else {
+                                for (LastUserReviews userReview : lastUserReviews) {
+                                    System.out.println("---- User Review ----");
+                                    System.out.println("Profile Name: " + userReview.getProfileName());
+                                    System.out.println("Time: " + userReview.getTime());
+                                    System.out.println("Score: " + userReview.getScore());
+                                    System.out.println("Review: " + userReview.getReview());
+                                    System.out.println("----------------------");
+                                }
+                            }
+
+                            System.out.println("====================");
+                        } else {
+                            System.out.println("No book found for ISBN: " + isbn);
+                        }
                     }
+
                     break;
                 }
                 case 12:{
@@ -322,9 +438,39 @@ public class CLIController {
                         break;
                     }
                     System.out.println("Top 5 books that your friends read too and it is based on your preferred genre");
-                    for(String isbn:ISBNS){
-                        System.out.println(bookController.getBookByISBN(isbn));
+                    for (String isbn : ISBNS) {
+                        Book book = bookController.getBookByISBN(isbn);
+                        if (book != null) {
+                            System.out.println("=== Book ===");
+                            System.out.println("ISBN: " + book.getISBN());
+                            System.out.println("Title: " + book.getTitle());
+                            System.out.println("Description: " + book.getDescription());
+                            System.out.println("Authors: " + book.getAuthors());
+                            System.out.println("Categories: " + book.getCategories());
+                            System.out.println("Published Date: " + book.getPublishedDate());
+
+                            List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                            System.out.println("=== Last User Reviews ===");
+
+                            if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                                System.out.println("No last user reviews available.");
+                            } else {
+                                for (LastUserReviews userReview : lastUserReviews) {
+                                    System.out.println("---- User Review ----");
+                                    System.out.println("Profile Name: " + userReview.getProfileName());
+                                    System.out.println("Time: " + userReview.getTime());
+                                    System.out.println("Score: " + userReview.getScore());
+                                    System.out.println("Review: " + userReview.getReview());
+                                    System.out.println("----------------------");
+                                }
+                            }
+
+                            System.out.println("====================");
+                        } else {
+                            System.out.println("No book found for ISBN: " + isbn);
+                        }
                     }
+
                     break;
                 }
                 case 13:{
@@ -335,9 +481,39 @@ public class CLIController {
                         break;
                     }
                     System.out.println("Top 5 books that is based on your preferred genre");
-                    for(String isbn:ISBNS){
-                        System.out.println(bookController.getBookByISBN(isbn));
+                    for (String isbn : ISBNS) {
+                        Book book = bookController.getBookByISBN(isbn);
+                        if (book != null) {
+                            System.out.println("=== Book ===");
+                            System.out.println("ISBN: " + book.getISBN());
+                            System.out.println("Title: " + book.getTitle());
+                            System.out.println("Description: " + book.getDescription());
+                            System.out.println("Authors: " + book.getAuthors());
+                            System.out.println("Categories: " + book.getCategories());
+                            System.out.println("Published Date: " + book.getPublishedDate());
+
+                            List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                            System.out.println("=== Last User Reviews ===");
+
+                            if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                                System.out.println("No last user reviews available.");
+                            } else {
+                                for (LastUserReviews userReview : lastUserReviews) {
+                                    System.out.println("---- User Review ----");
+                                    System.out.println("Profile Name: " + userReview.getProfileName());
+                                    System.out.println("Time: " + userReview.getTime());
+                                    System.out.println("Score: " + userReview.getScore());
+                                    System.out.println("Review: " + userReview.getReview());
+                                    System.out.println("----------------------");
+                                }
+                            }
+
+                            System.out.println("====================");
+                        } else {
+                            System.out.println("No book found for ISBN: " + isbn);
+                        }
                     }
+
                     break;
                 }
                 case 14:{
@@ -347,9 +523,39 @@ public class CLIController {
                         break;
                     }
                     System.out.println("Top 5 books that is based on your preferred Authors");
-                    for(String isbn:ISBNS){
-                        System.out.println(bookController.getBookByISBN(isbn));
+                    for (String isbn : ISBNS) {
+                        Book book = bookController.getBookByISBN(isbn);
+                        if (book != null) {
+                            System.out.println("=== Book ===");
+                            System.out.println("ISBN: " + book.getISBN());
+                            System.out.println("Title: " + book.getTitle());
+                            System.out.println("Description: " + book.getDescription());
+                            System.out.println("Authors: " + book.getAuthors());
+                            System.out.println("Categories: " + book.getCategories());
+                            System.out.println("Published Date: " + book.getPublishedDate());
+
+                            List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                            System.out.println("=== Last User Reviews ===");
+
+                            if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                                System.out.println("No last user reviews available.");
+                            } else {
+                                for (LastUserReviews userReview : lastUserReviews) {
+                                    System.out.println("---- User Review ----");
+                                    System.out.println("Profile Name: " + userReview.getProfileName());
+                                    System.out.println("Time: " + userReview.getTime());
+                                    System.out.println("Score: " + userReview.getScore());
+                                    System.out.println("Review: " + userReview.getReview());
+                                    System.out.println("----------------------");
+                                }
+                            }
+
+                            System.out.println("====================");
+                        } else {
+                            System.out.println("No book found for ISBN: " + isbn);
+                        }
                     }
+
                     break;
                 }
                 case 15:{
@@ -360,13 +566,14 @@ public class CLIController {
                     }
                     System.out.println("Top 5 friends that are friends of your friends ");
                     for(User user:users){
-                        userController.getUserByProfileName(user.getprofileName());
+                        userController.showProfilewithNoPass(userController.getUserByProfileName(user.getprofileName()));
                     }
                     break;
                 }
                 case 16:{
+                    System.out.println("Logging out...");
                     Session.resetInstance();
-                    return;
+                    System.out.println("Logout successful. Goodbye, Reader!");
                 }
                 default:{
                     System.out.println("Invalid choice. Please try again.");
@@ -390,10 +597,11 @@ public class CLIController {
             System.out.println("5-Delete Review");
             System.out.println("6-Add Book");
             System.out.println("7-Ban User");
-            System.out.println("8-Statistics on User");
-            System.out.println("9-Statistics on Books");
+            System.out.println("8-User Statistics");
+            System.out.println("9-Book Statistics");
             System.out.println("10-LogOut");
-            System.out.print("Choice->");
+            System.out.println("------------");
+            System.out.print("Enter your choice: ");
             switch (Integer.parseInt(scanner.nextLine())){
                 case 1: {
                     userController.showProfile(Session.getInstance().getLoggedUser());
@@ -404,7 +612,7 @@ public class CLIController {
                     String usernameToFind = scanner.nextLine();
                     List<User>users=userController.getUserByKeyword(usernameToFind,false,0);
                     for(User user:users){
-                        System.out.println(user);
+                        userController.showProfile(user);
                     }
                     break;
                 }
@@ -442,13 +650,37 @@ public class CLIController {
                     }else {
                         categories= Arrays.asList(category.split(","));
                     }
-                    List<Book> books=userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5) ;
-                    if(books==null){
+                    List<Book> books = userController.searchBooksByParameters(bookTitleToFind, authors, startDate, endDate, categories, 0, 5);
+                    if (books == null || books.isEmpty()) {
                         System.out.println("No book in the DB using these parameters");
                         break;
                     }
-                    for(Book book:books){
-                        System.out.println(book);
+                    for (Book book : books) {
+                        System.out.println("=== Book ===");
+                        System.out.println("ISBN: " + book.getISBN());
+                        System.out.println("Title: " + book.getTitle());
+                        System.out.println("Description: " + book.getDescription());
+                        System.out.println("Authors: " + book.getAuthors());
+                        System.out.println("Categories: " + book.getCategories());
+                        System.out.println("Published Date: " + book.getPublishedDate());
+
+                        List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                        System.out.println("=== Last User Reviews ===");
+
+                        if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                            System.out.println("No last user reviews available.");
+                        } else {
+                            for (LastUserReviews userReview : lastUserReviews) {
+                                System.out.println("---- User Review ----");
+                                System.out.println("Profile Name: " + userReview.getProfileName());
+                                System.out.println("Time: " + userReview.getTime());
+                                System.out.println("Score: " + userReview.getScore());
+                                System.out.println("Review: " + userReview.getReview());
+                                System.out.println("----------------------");
+                            }
+                        }
+
+                        System.out.println("====================");
                     }
                     break;
                 }
@@ -462,7 +694,13 @@ public class CLIController {
                     User user = userController.getUserByProfileName(profileName);
                     if (book != null && user != null) {
                         Review review = userController.getReviewByISBNAndProfileName(book.getISBN(),user.getprofileName());
-                        System.out.println(review);
+                        System.out.println("---- Review ----");
+                        System.out.println("ISBN: " + review.getISBN());
+                        System.out.println("Title: " + review.getTitle());
+                        System.out.println("Score: " + review.getScore());
+                        System.out.println("Time: " + review.getTime());
+                        System.out.println("Review: " + review.getReview());
+                        System.out.println("---------------");
                         System.out.print("Do you want to delete the review?(Y/n)");
                         if (scanner.nextLine().equalsIgnoreCase("y")) {
                             bookController.deleteReview(book, review);
@@ -506,6 +744,7 @@ public class CLIController {
                     if (user == null) {
                         break;
                     }
+                    userController.showProfilewithNoPass(user);
                     System.out.print("Do you want to ban Him/Her?(Y/n)");
                     if (scanner.nextLine().equalsIgnoreCase("y")) {
                         userController.deleteUser(user);
@@ -514,23 +753,51 @@ public class CLIController {
                 }
                 case 8: {
                     System.out.println("Top 5 versatile Users");
-                    System.out.println(userController.getMostVersatileUsers(0, 5));
+                    List<User>users=userController.getMostVersatileUsers(0, 5);
+                    if(users!=null||!users.isEmpty()){
+                        for(User user:users){
+                            userController.showProfilewithNoPass(user);
+                        }
+                    }else{
+                        System.out.println("No users are present");
+                    }
                     System.out.println("Top 5 Most Followed Users -> Possible Influencers");
-                    System.out.println(userController.getUsersWithMostFollowers(5));
+                    List<String>influencers=userController.getUsersWithMostFollowers(5);
+                    if(influencers!=null||!influencers.isEmpty()){
+                        for(String influencer:influencers){
+                            userController.showProfilewithNoPass(userController.getUserByProfileName(influencer));
+                        }
+                    }else{
+                        System.out.println("No users are present");
+                    }
                     System.out.print("To get Most Rated Authors please enter a Num Min of Review that He/She has->");
                     ArrayList<Double> scores = new ArrayList<>();
                     System.out.println(userController.getMostRatedAuthors(0, 5, Integer.parseInt(scanner.nextLine()), scores));
                     System.out.println(scores);
                     System.out.println("Top 5 bad Users");
-                    System.out.println(userController.getBadUsers(0, 5));
+                    users=userController.getBadUsers(0, 5);
+                    if(users!=null||!users.isEmpty()){
+                        for(User user:users){
+                            userController.showProfilewithNoPass(user);
+                        }
+                    }else{
+                        System.out.println("No users are present");
+                    }
                     System.out.println("To get Most Active User Please Specify start and end date in format yyyy-mm-dd ");
                     System.out.print("Start:");
                     String start = scanner.nextLine();
                     System.out.print("End:");
                     String end = scanner.nextLine();
                     ArrayList<Integer> counts = new ArrayList<>();
-                    System.out.println(userController.getMostActiveUsers(start, end, 0, 5, counts));
-                    System.out.println(counts);
+                    List<String>activers=userController.getMostActiveUsers(start, end, 0, 5, counts);
+                    if(activers!=null||!activers.isEmpty()){
+                        for(String activer:activers){
+                            userController.showProfilewithNoPass(userController.getUserByProfileName(activer));
+                        }
+                    }else{
+                        System.out.println("No users are present");
+                    }
+                    System.out.println("Number of Reviews in that period:"+counts);
                     break;
                 }
                 case 9: {
@@ -547,14 +814,45 @@ public class CLIController {
                     }
                     System.out.print("Min Num:");
                     ArrayList<Double> scores = new ArrayList<>();
-                    System.out.println(userController.getTopBooks(Integer.parseInt(scanner.nextLine()), categories, 5, 0, scores));
-                    System.out.println(scores);
+                    List<Book>bookList=userController.getTopBooks(Integer.parseInt(scanner.nextLine()), categories, 5, 0, scores);
+                    if (bookList == null || bookList.isEmpty()) {
+                        System.out.println("No books found.");
+                    } else {
+                        for (Book book : bookList) {
+                            System.out.println("=== Book ===");
+                            System.out.println("ISBN: " + book.getISBN());
+                            System.out.println("Title: " + book.getTitle());
+                            System.out.println("Description: " + book.getDescription());
+                            System.out.println("Authors: " + book.getAuthors());
+                            System.out.println("Categories: " + book.getCategories());
+                            System.out.println("Published Date: " + book.getPublishedDate());
+
+                            List<LastUserReviews> lastUserReviews = book.getLast_users_review();
+                            System.out.println("=== Last User Reviews ===");
+
+                            if (lastUserReviews == null || lastUserReviews.isEmpty()) {
+                                System.out.println("No last user reviews available.");
+                            } else {
+                                for (LastUserReviews userReview : lastUserReviews) {
+                                    System.out.println("---- User Review ----");
+                                    System.out.println("Profile Name: " + userReview.getProfileName());
+                                    System.out.println("Time: " + userReview.getTime());
+                                    System.out.println("Score: " + userReview.getScore());
+                                    System.out.println("Review: " + userReview.getReview());
+                                    System.out.println("----------------------");
+                                }
+                            }
+
+                            System.out.println("====================");
+                        }
+                    }
+                    System.out.println("Book Scores: " + scores);
                     break;
                 }
                 case 10: {
-                    // Logout the user
+                    System.out.println("Logging out...");
                     Session.resetInstance();
-                    return;
+                    System.out.println("Logout successful. Goodbye, Admin!");
                 }
                 default: {
                     System.out.println("Invalid choice. Please try again.");

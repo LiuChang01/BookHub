@@ -32,73 +32,102 @@ public class UserController {
      *
      * @param user The user whose profile is to be displayed.
      */
-    public void showProfile(User user){
-        System.out.println("profileName->"+user.getprofileName());
-        System.out.println("password->"+user.getPassword());
-        System.out.println("type->"+(user.getType()==1?"admin":"normal User"));
-        if(user.getType()==0){
-            System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
-            System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
-            List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
-                    .getLast_reviews());
-            System.out.println("last_reviews:");
-            if(lastBookReviews==null){
-                System.out.println("no last reviews");
-                return;
-            }
-            for (LastBookReviews lastBookReviews1:lastBookReviews){
-                System.out.println(lastBookReviews1);
-            }
-        }
+    public void showProfile(User user) {
+        System.out.println("=== User Profile ===");
+        System.out.println("Profile Name: " + user.getprofileName());
+        System.out.println("Password: " + user.getPassword());
+        System.out.println("Type: " + (user.getType() == 1 ? "Admin" : "Normal User"));
+        System.out.println("====================");
 
+        if (user.getType() == 0) {
+            System.out.println("=== Followers/Following ===");
+            System.out.println("Follows: " + neo4jDBManager.getNumFollowingUser(user));
+            System.out.println("Following: " + neo4jDBManager.getNumFollowersUser(user));
+            System.out.println("============================");
+
+            List<LastBookReviews> lastBookReviews = user.getLast_reviews();
+            System.out.println("=== Last Reviews ===");
+
+            if (lastBookReviews == null || lastBookReviews.isEmpty()) {
+                System.out.println("No last reviews available.");
+            } else {
+                for (LastBookReviews review : lastBookReviews) {
+                    System.out.println("---- Review ----");
+                    System.out.println("ISBN: " + review.getISBN());
+                    System.out.println("Title: " + review.getTitle());
+                    System.out.println("Score: " + review.getScore());
+                    System.out.println("Time: " + review.getTime());
+                    System.out.println("Review: " + review.getReview());
+                    System.out.println("---------------");
+                }
+            }
+            System.out.println("====================");
+        }
     }
+
+
     /**
      * Displays user profile information without showing the password.
      *
      * @param user The user whose profile is to be displayed.
      */
-    public void showProfilewithNoPass(User user){
-        System.out.println("profileName->"+user.getprofileName());
-        System.out.println("type->"+(user.getType()==1?"admin":"normal User"));
-        if(user.getType()==0){
-            System.out.println("follows-> "+neo4jDBManager.getNumFollowingUser(user));
-            System.out.println("following->"+neo4jDBManager.getNumFollowersUser(user));
-            List<LastBookReviews> lastBookReviews=(user.getLast_reviews().isEmpty()?mongoDBManager.getUserByProfileName(user.getprofileName()).getLast_reviews():user
-                    .getLast_reviews());
-            System.out.println("last_reviews:");
-            if(lastBookReviews==null){
-                System.out.println("no last reviews");
-                return;
-            }
-            for (LastBookReviews lastBookReviews1:lastBookReviews){
-                System.out.println(lastBookReviews1);
-            }
-        }
+    public void showProfilewithNoPass(User user) {
+        System.out.println("=== User Profile ===");
+        System.out.println("Profile Name: " + user.getprofileName());
+        System.out.println("Type: " + (user.getType() == 1 ? "Admin" : "Normal User"));
+        System.out.println("====================");
 
+        if (user.getType() == 0) {
+            System.out.println("=== Followers/Following ===");
+            System.out.println("Follows: " + neo4jDBManager.getNumFollowingUser(user));
+            System.out.println("Following: " + neo4jDBManager.getNumFollowersUser(user));
+            System.out.println("============================");
+
+            List<LastBookReviews> lastBookReviews = user.getLast_reviews();
+            System.out.println("=== Last Reviews ===");
+
+            if (lastBookReviews.isEmpty()) {
+                System.out.println("No last reviews available.");
+            } else {
+                for (LastBookReviews review : lastBookReviews) {
+                    System.out.println("---- Review ----");
+                    System.out.println("ISBN: " + review.getISBN());
+                    System.out.println("Title: " + review.getTitle());
+                    System.out.println("Score: " + review.getScore());
+                    System.out.println("Time: " + review.getTime());
+                    System.out.println("Review: " + review.getReview());
+                    System.out.println("---------------");
+                }
+            }
+            System.out.println("====================");
+        }
     }
+
     /**
      * Displays the list of users that the current user is following and those who are following the current user.
      *
      * @param user The user for whom to display the followings and followers.
      */
-    public void showFollowings(User user){
-        System.out.println("Follows: ");
-        List<User>users=neo4jDBManager.getFollowingUsers(user);
+    public void showFollowings(User user) {
+        System.out.println("=== Follows ===");
+        List<User> followingUsers = neo4jDBManager.getFollowingUsers(user);
 
-        if(users==null){
-            System.out.println("You have not following Users");
-        }else {
-            for(User user1:users){
-                getUserByProfileName(user1.getprofileName());
+        if (followingUsers == null || followingUsers.isEmpty()) {
+            System.out.println("You are not following any users.");
+        } else {
+            for (User followingUser : followingUsers) {
+                showProfilewithNoPass(followingUser);
             }
         }
-        System.out.println("Following:");
-        users=neo4jDBManager.getFollowers(user);
-        if(users==null){
-            System.out.println("You have not followers ");
-        }else {
-            for(User user1:users){
-                getUserByProfileName(user1.getprofileName());
+
+        System.out.println("=== Following ===");
+        List<User> followers = neo4jDBManager.getFollowers(user);
+
+        if (followers == null || followers.isEmpty()) {
+            System.out.println("You have no followers.");
+        } else {
+            for (User follower : followers) {
+                showProfilewithNoPass(follower);
             }
         }
     }
@@ -280,7 +309,6 @@ public class UserController {
             System.out.println("user doesnt exist");
             return null;
         }
-        showProfilewithNoPass(user);
         return user;
     }
 
