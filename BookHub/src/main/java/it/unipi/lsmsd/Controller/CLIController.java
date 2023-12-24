@@ -48,13 +48,18 @@ public class CLIController {
             }
             switch (Session.getInstance().getLoggedUser().getType()) {
                 case 0: {
+                    System.out.println("Welcome, Dear user:"+Session.getInstance().getLoggedUser().getprofileName()+"!");
                     menuReg();
                     break;
                 }
                 case 1: {
+                    System.out.println("Welcome, Dear admin:"+Session.getInstance().getLoggedUser().getprofileName()+"!");
                     menuAdmin();
                     break;
                 }
+                default:
+                    System.out.println("Unknown user type");
+                    break;
             }
         } while (!finish);
     }
