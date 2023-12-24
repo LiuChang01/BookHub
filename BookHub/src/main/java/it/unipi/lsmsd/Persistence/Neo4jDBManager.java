@@ -485,6 +485,7 @@ public class Neo4jDBManager {
             session.readTransaction(tx -> {
                 Result result = tx.run(
                         "MATCH (u:User {name: $userName})-[:LIKES]->(a:Author)-[w:WROTE]->(b:Book) " +
+                                "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
                                 "WITH b, a, w " +
                                 "ORDER BY w.publicationDate DESC " +
                                 "RETURN b.ISBN AS ISBN " +
@@ -518,7 +519,8 @@ public class Neo4jDBManager {
         try (Session session = driver.session()) {
             session.readTransaction(tx -> {
                 Result result = tx.run(
-                        "MATCH (:User {name: $userName})-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(u2:User) " +
+                        "MATCH (me:User {name: $userName})-[:FOLLOWS]->(u:User)-[:FOLLOWS]->(u2:User) " +
+                                "WHERE NOT EXISTS((me)-[:FOLLOWS]->(u2)) "+
                                 "WITH u2, COUNT(DISTINCT u) AS numFollowers " +
                                 "ORDER BY numFollowers DESC " +
                                 "LIMIT $limit " +
@@ -583,6 +585,7 @@ public class Neo4jDBManager {
                     // Stage 2: Recommend books based on friends' comments and the user's preferred genre
                     Result result = tx.run(
                             "MATCH (u:User {name: $userName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book)-[:BELONGS_TO]->(g:Genre) " +
+                                    "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
                                     "WITH b, g, COUNT(r) AS numComments " +
                                     "WHERE g.name = $preferredGenre " +
                                     "WITH b,g,numComments "+
@@ -620,6 +623,7 @@ public class Neo4jDBManager {
                 // Cypher query to match the user, user's followings, books, and comments
                 Result result = tx.run(
                         "MATCH (u:User {name: $userProfileName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book) " +
+                                "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
                                 "WITH b, COUNT(r) AS numComments " +
                                 "ORDER BY numComments DESC " +
                                 "LIMIT $limit " +
