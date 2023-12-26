@@ -74,7 +74,7 @@ public class Neo4jDBManager {
         try (Session session = driver.session()) {
             numFollowers = session.readTransaction(tx -> {
                 Result result = tx.run("MATCH (:User {name: $username})<-[r:FOLLOWS]-() " +
-                        "RETURN COUNT(r) AS numFollowers", parameters("username", user.getprofileName()));
+                        "RETURN COUNT(DISTINCT r) AS numFollowers", parameters("username", user.getprofileName()));
                 return result.next().get("numFollowers").asInt();
             });
         }
@@ -121,7 +121,7 @@ public class Neo4jDBManager {
         try (Session session = driver.session()) {
             numFollowing = session.readTransaction(tx -> {
                 Result result = tx.run("MATCH (:User {name: $username})-[r:FOLLOWS]->() " +
-                        "RETURN COUNT(r) AS numFollowing", parameters("username", user.getprofileName()));
+                        "RETURN COUNT(DISTINCT r) AS numFollowing", parameters("username", user.getprofileName()));
                 return result.next().get("numFollowing").asInt();
             });
         }
@@ -452,9 +452,9 @@ public class Neo4jDBManager {
             session.readTransaction(tx -> {
                 Result result = tx.run(
                         "MATCH (follower:User)-[:FOLLOWS]->(u:User) " +
-                                "WITH u, COUNT(follower) AS numFollowers " +
+                                "WITH u, COUNT(DISTINCT follower) AS numFollowers " +
                                 "ORDER BY numFollowers DESC LIMIT $limit " +
-                                "RETURN u.name AS mostFollowed",
+                                "RETURN DISTINCT u.name AS mostFollowed",
                         parameters("limit", limit)
                 );
 
@@ -488,7 +488,7 @@ public class Neo4jDBManager {
                                 "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
                                 "WITH b, a, w " +
                                 "ORDER BY w.publicationDate DESC " +
-                                "RETURN b.ISBN AS ISBN " +
+                                "RETURN DISTINCT b.ISBN AS ISBN " +
                                 "LIMIT $limit",
                         parameters("userName", user.getprofileName(),"limit",limit)
                 );
@@ -586,12 +586,12 @@ public class Neo4jDBManager {
                     Result result = tx.run(
                             "MATCH (u:User {name: $userName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book)-[:BELONGS_TO]->(g:Genre) " +
                                     "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
-                                    "WITH b, g, COUNT(r) AS numComments " +
+                                    "WITH b, g, COUNT(DISTINCT r) AS numComments " +
                                     "WHERE g.name = $preferredGenre " +
                                     "WITH b,g,numComments "+
                                     "ORDER BY numComments DESC " +
                                     "LIMIT $limit " +
-                                    "RETURN b.ISBN AS ISBN, b.title AS title",
+                                    "RETURN DISTINCT b.ISBN AS ISBN, b.title AS title",
                             parameters("userName", user.getprofileName(), "preferredGenre", preferredGenre, "limit", limit)
                     );
 
@@ -624,10 +624,10 @@ public class Neo4jDBManager {
                 Result result = tx.run(
                         "MATCH (u:User {name: $userProfileName})-[:FOLLOWS]->(f:User)-[r:REVIEWS]->(b:Book) " +
                                 "WHERE NOT EXISTS((u)-[:REVIEWS]->(b)) "+
-                                "WITH b, COUNT(r) AS numComments " +
+                                "WITH b, COUNT(DISTINCT r) AS numComments " +
                                 "ORDER BY numComments DESC " +
                                 "LIMIT $limit " +
-                                "RETURN b.ISBN AS ISBN, b.title AS title",
+                                "RETURN DISTINCT b.ISBN AS ISBN, b.title AS title",
                         parameters("userProfileName", user.getprofileName(), "limit", limit)
                 );
 
@@ -660,9 +660,9 @@ public class Neo4jDBManager {
                 // Recommend books based on the preferred genre and most reviewed by others
                 Result result = tx.run(
                         "MATCH (u:User)-[:REVIEWS]->(b:Book)-[:BELONGS_TO]->(g:Genre) " +
-                                "WITH b, g, COUNT(u) AS numReviews " +
+                                "WITH b, g, COUNT(DISTINCT u) AS numReviews " +
                                 "WHERE g.name = $preferredGenre AND numReviews > $numReviewsThreshold " +
-                                "RETURN b.ISBN AS ISBN, b.title AS title, numReviews " +
+                                "RETURN DISTINCT b.ISBN AS ISBN, b.title AS title, numReviews " +
                                 "ORDER BY numReviews DESC " +
                                 "LIMIT $limit",
                         parameters("preferredGenre", preferredGenre, "numReviewsThreshold", numReviews, "limit", limit)
