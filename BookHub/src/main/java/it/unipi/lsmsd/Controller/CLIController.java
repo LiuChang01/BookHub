@@ -578,6 +578,7 @@ public class CLIController {
                     System.out.println("Logging out...");
                     Session.resetInstance();
                     System.out.println("Logout successful. Goodbye, Reader!");
+                    return;
                 }
                 default:{
                     System.out.println("Invalid choice. Please try again.");
@@ -857,6 +858,7 @@ public class CLIController {
                     System.out.println("Logging out...");
                     Session.resetInstance();
                     System.out.println("Logout successful. Goodbye, Admin!");
+                    return;
                 }
                 default: {
                     System.out.println("Invalid choice. Please try again.");
