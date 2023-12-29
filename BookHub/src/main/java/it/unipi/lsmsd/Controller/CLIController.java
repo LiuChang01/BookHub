@@ -194,17 +194,16 @@ public class CLIController {
             System.out.println("4-Add review");
             System.out.println("5-Change Password");
             System.out.println("6-Add Your Preferred genre");
-            System.out.println("7-Follow/Unfollow");
-            System.out.println("8-Follow an Author");
-            System.out.println("9-Follow a User");
-            System.out.println("10-Unfollow an Author");
-            System.out.println("11-Unfollow a User");
-            System.out.println("12-Recommendation of Books Based On Friend");
-            System.out.println("13-Recommendation of Books Based On Friend and Preferred Genre");
-            System.out.println("14-Recommendation of Books Based On The Preferred Genre");
-            System.out.println("15-Recommendation of Books Based On Best Authors");
-            System.out.println("16-Recommendation of Users");
-            System.out.println("17-LogOut");
+            System.out.println("7-Follow an Author");
+            System.out.println("8-Follow a User");
+            System.out.println("9-Unfollow an Author");
+            System.out.println("10-Unfollow a User");
+            System.out.println("11-Recommendation of Books Based On Friend");
+            System.out.println("12-Recommendation of Books Based On Friend and Preferred Genre");
+            System.out.println("13-Recommendation of Books Based On The Preferred Genre");
+            System.out.println("14-Recommendation of Books Based On Best Authors");
+            System.out.println("15-Recommendation of Users");
+            System.out.println("16-LogOut");
             System.out.println("------------");
             System.out.print("Enter your choice: ");
 
